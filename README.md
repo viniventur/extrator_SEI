@@ -1,0 +1,1 @@
+# Automação no SEI para captura da unidade atual
