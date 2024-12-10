@@ -3,4 +3,5 @@ __pycache__/
 *.py[cod]
 .env
 lista_processos.xlsx
+lista_processos_preenchido.xlsx
 chromedriver.exe
