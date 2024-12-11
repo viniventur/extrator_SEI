@@ -30,6 +30,30 @@ chrome_options.add_argument('--disable-dev-shm-usage')
 
 driver = webdriver.Chrome(options=chrome_options)
 
+@st.cache_data
+def lista_orgaos_login():
+    
+    try:
+        driver.get(env['SITE_SEI'])
+
+        select_element = driver.find_element('xpath', '//*[@id="selOrgao"]')
+
+        # Cria um objeto Select para manipular a lista suspensa
+        select = Select(select_element)
+
+        # Captura todas as opções da lista
+        options = select.options
+
+        # Captura todas as opções e seus textos
+        option_texts = [option.text for option in select.options]
+        
+        driver.quit()
+
+        return option_texts
+        
+    except Exception as e:
+
+        st.error(f"Obtenção de órgãos disponíveis no SEI falhou: {e}")
 
 def login_sei(usuario_sei, senha_sei, orgao_sei):
 
@@ -69,41 +93,17 @@ def login_sei(usuario_sei, senha_sei, orgao_sei):
                 alerta.accept()
                 driver.quit()
             except:
-                st.success('ok foi')
-                driver.quit() # RETIRARAAAAARRARARARAR
+                st.success('Login efetuado!')
+                driver.quit() # RETIRAR POS DESENVOLVIMENTO
                 time.sleep(20)
             
 
     except Exception as e:
 
-        st.error(f"Login falhou. Texto do popup: {e}")
+        st.error(f"Login falhou: {e}")
 
     finally:
         # Feche o navegador
         time.sleep(5)  # Diminua o tempo se necessário
         driver.quit()
 
-@st.cache_data
-def lista_orgaos_login():
-    
-    try:
-        driver.get(env['SITE_SEI'])
-
-        select_element = driver.find_element('xpath', '//*[@id="selOrgao"]')  # Substitua pelo ID correto
-
-        # Cria um objeto Select para manipular a lista suspensa
-        select = Select(select_element)
-
-        # Captura todas as opções da lista
-        options = select.options
-
-        # Captura todas as opções e seus textos
-        option_texts = [option.text for option in select.options]
-        
-        driver.quit()
-
-        return option_texts
-        
-    except Exception as e:
-
-        st.error(f"Obtenção de órgãos disponíveis no SEI falhou: {e}")

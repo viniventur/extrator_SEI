@@ -66,14 +66,14 @@ def main():
 
         st.write('''
                  
-                 # 
+                 ## 
 
                  Obs.: Os dados de logins fornecidos não são armazenados, servindo apenas para o sistema logar no SEI e carregar as informações.                 
                  
                  ''')
 
     # Input para o usuário
-    usuario = st.text_input('Usuário SEI:', placeholder="Digite seu nome de usuário do SEI.")
+    usuario = st.text_input('Usuário SEI:', placeholder="Digite seu usuário do SEI.")
 
     # Input para a senha (caracteres ocultos)
     senha = st.text_input('Senha SEI:', type='password', placeholder="Digite sua senha do SEI.")
@@ -85,8 +85,11 @@ def main():
 
     # Login
     if st.button("Login"):
-        login_sei(usuario, senha, orgao)
-
+        
+        if orgao == lista_orgaos[0]:
+            st.error(f"Informe o órgão.")
+        else:
+            login_sei(usuario, senha, orgao)
 
 
     '''
