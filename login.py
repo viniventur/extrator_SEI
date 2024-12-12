@@ -23,17 +23,16 @@ warnings.filterwarnings('ignore')
 import time
 
 
-chrome_options = Options()
-chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--disable-dev-shm-usage')
-
-driver = webdriver.Chrome(options=chrome_options)
-
 @st.cache_data
 def lista_orgaos_login():
-    
+
     try:
+        chrome_options = Options()
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+
+        driver = webdriver.Chrome(options=chrome_options)
         driver.get(env['SITE_SEI'])
 
         select_element = driver.find_element('xpath', '//*[@id="selOrgao"]')
@@ -61,6 +60,13 @@ def login_sei(usuario_sei, senha_sei, orgao_sei):
 
     try:
         
+        chrome_options = Options()
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+
+        driver = webdriver.Chrome(options=chrome_options)
+
         with st.spinner('Entrando no SEI...'):
 
             
@@ -93,7 +99,8 @@ def login_sei(usuario_sei, senha_sei, orgao_sei):
                 alerta.accept()
                 driver.quit()
             except:
-                st.success('Login efetuado!')
+                st.success('Acesso efetuado! Redirecionando, aguarde...')
+                st.switch_page('pages/Extracao.py')
                 driver.quit() # RETIRAR POS DESENVOLVIMENTO
                 time.sleep(20)
             

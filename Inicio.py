@@ -20,11 +20,20 @@ warnings.filterwarnings('ignore')
 import base64
 import time
 
-st.set_page_config(layout="wide", page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg')
+st.set_page_config(layout="wide", page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
+
+# Aplicar CSS para esconder o sidebar
+hide_sidebar_style = """
+    <style>
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+    </style>
+"""
+st.markdown(hide_sidebar_style, unsafe_allow_html=True)
 
 def main():
 
-    # VER VER VER O DARK MODE PADRAO
     # Criar um contêiner fixo no topo da página
     header = st.container()
 
@@ -42,7 +51,7 @@ def main():
         st.markdown(
             f"""
             <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
-                <img src="data:image/png;base64,{logo_base64_CGE}" style="margin-right: 20px; width: 300px;">
+                <img src="data:image/png;base64,{logo_base64_CGE}" style="margin-right: 0px; width: 300px;">
                 <img src="data:image/png;base64,{logo_base64_OGP}" style="width: 250px;">
             </div>
             """,
@@ -84,20 +93,11 @@ def main():
         orgao = st.selectbox("Órgão:", lista_orgaos)
 
     # Login
-    if st.button("Login"):
-        
+    if st.button("Acessar"):
         if orgao == lista_orgaos[0]:
             st.error(f"Informe o órgão.")
         else:
             login_sei(usuario, senha, orgao)
-
-
-    '''
-
-    # adicionar input para a unidade (lista de seleção)
-    unidade = st.selectbox('Selecione a Unidade', lista_unidades)
-    '''
-
-
+            
 if __name__ == "__main__":
     main()
