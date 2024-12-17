@@ -61,20 +61,8 @@ def login_sei(usuario_sei, senha_sei, orgao_sei):
     print('Carregando...')
 
     try:
-        
-        '''chrome_options = Options()
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--disable-dev-shm-usage')
 
-        driver = webdriver.Chrome(options=chrome_options)'''
-                # Inicializa o driver apenas se ainda não existir no session_state
-        chrome_options = webdriver.ChromeOptions()
-        #chrome_options.add_argument('--no-sandbox')
-        #chrome_options.add_argument('--headless')
-        #chrome_options.add_argument('--disable-dev-shm-usage')
-        service = Service()  # Servidor do ChromeDriver
-        driver = webdriver.Chrome(service=service, options=chrome_options)
+        driver = chrome()
 
         if 'driver' not in st.session_state:
             st.session_state.driver = driver
