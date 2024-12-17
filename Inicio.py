@@ -5,6 +5,7 @@ from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
 
 from login import *
+from chrome import *
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -20,7 +21,7 @@ warnings.filterwarnings('ignore')
 import base64
 import time
 
-st.set_page_config(layout="wide", page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
+st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
 
 # Aplicar CSS para esconder o sidebar
 hide_sidebar_style = """
@@ -75,7 +76,7 @@ def main():
 
         st.write('''
                  
-                 ## 
+                 ##### 
 
                  Obs.: Os dados de logins fornecidos não são armazenados, servindo apenas para o sistema logar no SEI e carregar as informações.                 
                  
