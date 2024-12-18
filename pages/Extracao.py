@@ -36,13 +36,16 @@ def main():
     st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
 
     # Aplicar CSS para esconder o sidebar
-    st.markdown("""
+    hide_style = """
         <style>
         [data-testid="stSidebar"] {
             display: none;
         }
+        #MainMenu {visibility: hidden}
+        header {visibility: hidden}
         </style>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(hide_style, unsafe_allow_html=True)
 
     # Inicializar a flag auxiliar para limpar o input
     if "limpar_input" not in st.session_state:

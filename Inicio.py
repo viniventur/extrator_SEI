@@ -24,14 +24,16 @@ import time
 st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
 
 # Aplicar CSS para esconder o sidebar
-hide_sidebar_style = """
+hide_style = """
     <style>
     [data-testid="stSidebar"] {
         display: none;
     }
+    #MainMenu {visibility: hidden}
+    header {visibility: hidden}
     </style>
 """
-st.markdown(hide_sidebar_style, unsafe_allow_html=True)
+st.markdown(hide_style, unsafe_allow_html=True)
 
 def main():
 

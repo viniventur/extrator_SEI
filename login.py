@@ -42,7 +42,7 @@ def lista_orgaos_login():
 
 def login_sei(usuario_sei, senha_sei, orgao_sei):
 
-    print('Carregando...')
+    st.write('Carregando...')
 
     try:
 
