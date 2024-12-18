@@ -12,8 +12,6 @@ import time
 
 from chrome import *
 
-
-@st.cache_data
 def lista_unidades_sei():
 
     try:
