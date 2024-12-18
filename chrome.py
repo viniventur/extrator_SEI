@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+import shutil
 
 def chrome():
     chrome_options = Options()
@@ -10,5 +11,8 @@ def chrome():
     chrome_options.add_experimental_option('detach', True)
     chrome_options.add_argument('--disable-blink-features=AutomationControlled')
 
-    driver = webdriver.Chrome(options=chrome_options, service=Service(executable_path='./chromedriver.exe'))
+    def get_chromedriver_path() -> str:
+        return shutil.which('chromedriver')
+
+    driver = webdriver.Chrome(options=chrome_options, service=Service(executable_path=shutil.which('chromedriver')))
     return driver
