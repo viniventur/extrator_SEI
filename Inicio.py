@@ -20,6 +20,8 @@ hide_style = """
     [data-testid="stSidebar"] {
         display: none;
     }
+    #MainMenu {visibility: hidden}
+    header {visibility: hidden}
     </style>
 """
 st.markdown(hide_style, unsafe_allow_html=True)
