@@ -24,13 +24,13 @@ def voltar():
     with st.spinner('Redirecionando...'):
         excluir_driver()
         st.cache_resource.clear()
-        st.switch_page('inicio.py')
+        st.switch_page('Inicio.py')
 
 if 'driver' not in st.session_state:
     st.error('Erro, Google Chrome não respondeu, redirecionando...')
     st.cache_data.clear()
     st.cache_resource.clear()
-    st.switch_page('inicio.py')
+    st.switch_page('Inicio.py')
 
 def main():
     st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
