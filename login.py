@@ -4,20 +4,10 @@ import streamlit as st
 from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
+from chrome import *
+
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.common.keys import Keys
 
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
-
-import pyautogui
-import requests
-from bs4 import BeautifulSoup
 import warnings
 warnings.filterwarnings('ignore')
 import time
@@ -28,12 +18,6 @@ from chrome import *
 def lista_orgaos_login():
 
     try:
-        '''chrome_options = Options()
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--disable-dev-shm-usage')
-
-        driver = webdriver.Chrome(options=chrome_options)'''
         driver = chrome()
         driver.get(env['SITE_SEI'])
 

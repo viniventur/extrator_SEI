@@ -10,9 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
-import pyautogui
-import requests
-from bs4 import BeautifulSoup
+
 import warnings
 warnings.filterwarnings('ignore')
 import time
@@ -61,12 +59,13 @@ try:
 
                 usuario_sei = env['CPF_SEI']
                 senha_sei = env['SENHA_SEI']
+                orgao_sei = env['ORGAO']
 
                 driver.find_element("xpath", '//*[@id="txtUsuario"]').send_keys(usuario_sei)
                 time.sleep(tempo_curto)
                 driver.find_element("xpath", '//*[@id="pwdSenha"]').send_keys(senha_sei)
                 time.sleep(tempo_curto)
-                driver.find_element("xpath", '//*[@id="selOrgao"]').send_keys('CGE')
+                driver.find_element("xpath", '//*[@id="selOrgao"]').send_keys(orgao_sei)
                 driver.find_element("xpath", '//*[@id="sbmLogin"]').click()
 
 
