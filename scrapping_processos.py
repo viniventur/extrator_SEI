@@ -124,6 +124,9 @@ def buscar_dados(processos):
     duracao = fim - inicio
     tempo_formatado = time.strftime("%H:%M:%S", time.gmtime(duracao))
 
+    # Exibe o tempo total de execução
+    mensagem_tempo = st.success(f"Processamento concluído em {tempo_formatado}.")
+
     # Exportando em excel
     df_processos_xlsx = converter_para_excel(processos)
 
@@ -137,7 +140,5 @@ def buscar_dados(processos):
 
     dataframe_final = st.dataframe(processos, hide_index=True)
 
-    # Exibe o tempo total de execução
-    st.success(f"Processamento concluído em {tempo_formatado}.")
 
-    return botao_download, dataframe_final
+    return mensagem_tempo, botao_download, dataframe_final
