@@ -1,8 +1,10 @@
 # Extrator de Dados do SEI
 
-<img src="src/assets/Identidades%20visual/log_sei.png" alt="SEI" width="50"> 
-<img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white" alt="SEI" width="150"> 
-<img src="https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=Selenium&logoColor=white" alt="SEI" width="140"> 
+<div style="display: flex; align-items: center;">
+    <img src="src/assets/Identidades%20visual/log_sei.png" alt="SEI" width="50" style="margin-right: 10px;">
+    <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white" alt="Streamlit" width="150" style="margin-right: 10px;">
+    <img src="https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=Selenium&logoColor=white" alt="Selenium" width="140">
+</div>
 
 # Descrição do projeto
 
