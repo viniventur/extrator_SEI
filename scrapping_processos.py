@@ -137,4 +137,7 @@ def buscar_dados(processos):
 
     dataframe_final = st.dataframe(processos, hide_index=True)
 
+    # Exibe o tempo total de execução
+    st.success(f"Processamento concluído em {tempo_formatado}.")
+
     return botao_download, dataframe_final
