@@ -52,7 +52,7 @@ def buscar_dados(processos):
     
     try:
 
-        for i, processo in enumerate(processos['Processos'], start=1):
+        for i, processo in enumerate(processos['Processos'], start=0):
             # Atualiza o cronômetro
             tempo_decorrido = time.time() - inicio
             horas, resto = divmod(tempo_decorrido, 3600)
@@ -147,5 +147,4 @@ def buscar_dados(processos):
 
     dataframe_final = st.dataframe(processos, hide_index=True)
 
-
-    return botao_download, dataframe_final
+    return dataframe_final
