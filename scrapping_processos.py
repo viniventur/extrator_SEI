@@ -47,12 +47,18 @@ def buscar_dados(processos):
     status_texto = st.empty()  # Espaço para exibir o texto de progresso
     cronometro_texto = st.empty()  # Espaço para o cronômetro
 
+    # Calcula e exibe o tempo estimado
+    tempo_estimado_total = total_processos * 4  # 6 segundos por processo
+    minutos_estimados, segundos_estimados = divmod(tempo_estimado_total, 60)
+    tempo_estimado_formatado = f"{int(minutos_estimados)}min {int(segundos_estimados)}s"
+    st.write(f"Tempo estimado para concluir a busca: {tempo_estimado_formatado}")
+
     # Marca o início do processamento
     inicio = time.time()
     
     try:
 
-        for i, processo in enumerate(processos['Processos'], start=0):
+        for i, processo in enumerate(processos['Processos'], start=1):
             # Atualiza o cronômetro
             tempo_decorrido = time.time() - inicio
             horas, resto = divmod(tempo_decorrido, 3600)
@@ -62,7 +68,7 @@ def buscar_dados(processos):
 
             # Atualiza o texto e a barra de progresso
             progresso.progress(i / total_processos)
-            status_texto.text(f"Buscando dados dos processos: {i} de {total_processos} concluídos")
+            status_texto.text(f"Buscando dados dos processos: {i} de {total_processos}.")
 
 
             # Busca dos processos
