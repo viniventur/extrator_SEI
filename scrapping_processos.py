@@ -41,7 +41,17 @@ def buscar_dados(processos):
 
     driver = st.session_state.driver
 
-    for processo in processos['Processos']:
+    # Inicializa o indicador de progresso
+    total_processos = len(processos)
+    progresso = st.progress(0)  # Barra de progresso inicializada
+    status_texto = st.empty()  # Espaço para exibir o texto de progresso
+
+    for i, processo in enumerate(processos['Processos'], start=1):
+        # Atualiza o texto e a barra de progresso
+        progresso.progress(i / total_processos)
+        status_texto.text(f"Buscando dados dos processos: {i} de {total_processos} concluídos")
+
+        # Busca dos processos
         time.sleep(tempo_medio)
         driver.find_element("xpath", '//*[@id="txtPesquisaRapida"]').send_keys(processo)
         time.sleep(tempo_curto)

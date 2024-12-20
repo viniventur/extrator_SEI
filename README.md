@@ -1,1 +1,7 @@
-# Automação no SEI para captura da unidade atual
+# Extrator de Dados do SEI
+
+
+
+
+
+
