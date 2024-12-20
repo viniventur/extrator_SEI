@@ -46,10 +46,13 @@ def buscar_dados(processos):
     progresso = st.progress(0)  # Barra de progresso inicializada
     status_texto = st.empty()  # Espaço para exibir o texto de progresso
 
+    # Marca o início do processamento
+    inicio = time.time()
+
     for i, processo in enumerate(processos['Processos'], start=1):
         # Atualiza o texto e a barra de progresso
         progresso.progress(i / total_processos)
-        status_texto.text(f"Buscando dados dos processos: {i} de {total_processos} concluídos")
+        status_texto.text(f"Buscando dados dos processos: {i} de {total_processos} concluídos.")
 
         # Busca dos processos
         time.sleep(tempo_medio)
@@ -115,6 +118,11 @@ def buscar_dados(processos):
 
         # Voltar ao contexto principal
         driver.switch_to.default_content()
+
+    # Marca o fim do processamento
+    fim = time.time()
+    duracao = fim - inicio
+    tempo_formatado = time.strftime("%H:%M:%S", time.gmtime(duracao))
 
     # Exportando em excel
     df_processos_xlsx = converter_para_excel(processos)
