@@ -45,14 +45,23 @@ def buscar_dados(processos):
     total_processos = len(processos)
     progresso = st.progress(0)  # Barra de progresso inicializada
     status_texto = st.empty()  # Espaço para exibir o texto de progresso
+    cronometro_texto = st.empty()  # Espaço para o cronômetro
 
     # Marca o início do processamento
     inicio = time.time()
 
     for i, processo in enumerate(processos['Processos'], start=1):
+        # Atualiza o cronômetro
+        tempo_decorrido = time.time() - inicio
+        horas, resto = divmod(tempo_decorrido, 3600)
+        minutos, segundos = divmod(resto, 60)
+        tempo_formatado = f"{int(horas):02}:{int(minutos):02}:{int(segundos):02}"
+        cronometro_texto.text(f"Tempo de execução: {tempo_formatado}")
+
         # Atualiza o texto e a barra de progresso
         progresso.progress(i / total_processos)
-        status_texto.text(f"Buscando dados dos processos: {i} de {total_processos} concluídos.")
+        status_texto.text(f"Buscando dados dos processos: {i} de {total_processos} concluídos")
+
 
         # Busca dos processos
         time.sleep(tempo_medio)
@@ -119,14 +128,6 @@ def buscar_dados(processos):
         # Voltar ao contexto principal
         driver.switch_to.default_content()
 
-    # Marca o fim do processamento
-    fim = time.time()
-    duracao = fim - inicio
-    tempo_formatado = time.strftime("%H:%M:%S", time.gmtime(duracao))
-
-    # Exibe o tempo total de execução
-    mensagem_tempo = st.success(f"Processamento concluído em {tempo_formatado}.")
-
     # Exportando em excel
     df_processos_xlsx = converter_para_excel(processos)
 
@@ -141,4 +142,4 @@ def buscar_dados(processos):
     dataframe_final = st.dataframe(processos, hide_index=True)
 
 
-    return mensagem_tempo, botao_download, dataframe_final
+    return botao_download, dataframe_final
