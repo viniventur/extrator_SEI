@@ -8,6 +8,7 @@ from extracao_unidade import *
 from tratamento_processos import *
 from scrapping_processos import *
 from login import *
+import base64
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -32,21 +33,23 @@ if 'driver' not in st.session_state:
     st.cache_resource.clear()
     st.switch_page('Inicio.py')
 
+st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
+
+# Aplicar CSS para esconder o sidebar
+hide_style = """
+    <style>
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+    #MainMenu {visibility: hidden}
+    header {visibility: hidden}
+    </style>
+"""
+st.markdown(hide_style, unsafe_allow_html=True)
+
+
 def main():
-    st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
-
-    # Aplicar CSS para esconder o sidebar
-    hide_style = """
-        <style>
-        [data-testid="stSidebar"] {
-            display: none;
-        }
-        #MainMenu {visibility: hidden}
-        header {visibility: hidden}
-        </style>
-    """
-    st.markdown(hide_style, unsafe_allow_html=True)
-
+    
     # Inicializar a flag auxiliar para limpar o input
     if "limpar_input" not in st.session_state:
         st.session_state.limpar_input = False
@@ -58,11 +61,36 @@ def main():
     else:
         default_value = st.session_state.get("processos_input", "")
 
+    # Criar um contêiner fixo no topo da página
+    header = st.container()
+
+    def get_image_as_base64(file_path):
+        with open(file_path, "rb") as file:
+            return base64.b64encode(file.read()).decode("utf-8")
+
+    logo_path_CGE = 'src/assets/Identidades visual/Logo CGE Governo/LOGO GOV-branco.png'
+    logo_path_OGP = 'src/assets/Identidades visual/OGP/APRESENTAÇÃO_LOGO_-_OBSERVATÓRIO_DA_GESTÃO_PÚBLICA_BRANCO_TRANSP.png'
+    logo_base64_CGE = get_image_as_base64(logo_path_CGE)
+    logo_base64_OGP = get_image_as_base64(logo_path_OGP)
+
+    with st.container():
+        # Centralizando as imagens lado a lado
+        st.markdown(
+            f"""
+            <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
+                <img src="data:image/png;base64,{logo_base64_CGE}" style="margin-right: 0px; width: 300px;">
+                <img src="data:image/png;base64,{logo_base64_OGP}" style="width: 250px;">
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with st.container():
+        st.markdown("<h1 style='text-align: center;'>Extração dos Dados</h1>", unsafe_allow_html=True)
+
     # Layout
     if st.button("Voltar ao Início"):
         voltar()
-
-    st.markdown("<h1 style='text-align: center;'>Extração dos Dados</h1>", unsafe_allow_html=True)
 
     # Lista de seleção
     lista_unidades = lista_unidades_sei()
