@@ -7,7 +7,6 @@ env = dotenv_values('.env')
 
 from utils.chrome import *
 from scraping.extracao_unidade import *
-from utils.tratamento_processos import *
 from utils.funcoes_auxiliares import *
 
 from selenium.webdriver.common.by import By
