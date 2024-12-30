@@ -123,7 +123,7 @@ def buscar_dados(processos):
                 pass  # Unidade tem acesso, continuar
 
             # Extrai os dados da primeira linha da tabela
-            processo_sei_format = num_processo(driver.find_element(By.XPATH, '//*[@id="divInfraBarraLocalizacao"]').text)
+            processo_sei_format = num_processo_sei(driver.find_element(By.XPATH, '//*[@id="divInfraBarraLocalizacao"]').text) # coluna 0: Processo
             data_hora = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[1]').text  # Coluna 1: Data/Horário
             unidade = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[2]').text    # Coluna 2: Unidade
             usuario_elemento = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[3]/a')

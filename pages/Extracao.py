@@ -117,7 +117,7 @@ def main():
     if buscar:
         if lista_processos:
             with st.spinner('Buscando dados, aguarde...'):
-                resultado, total_linhas, linhas_validas = tratar_processos(lista_processos)
+                resultado, total_linhas, linhas_validas = tratar_processos_input(lista_processos)
 
                 # Criação do DataFrame
                 resultado = [linha.strip() for linha in resultado.splitlines() if linha.strip()]
