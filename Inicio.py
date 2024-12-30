@@ -93,8 +93,6 @@ def main():
             st.error(f"Informe o órgão.")
         else:
             login_sei(usuario, senha, orgao)
-
-    st.write(is_local())
         
 if __name__ == "__main__":
     main()
