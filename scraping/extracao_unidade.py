@@ -10,7 +10,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import time
 
-from chrome import *
+from utils.chrome import *
 
 def lista_unidades_sei():
 

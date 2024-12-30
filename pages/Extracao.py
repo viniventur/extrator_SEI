@@ -3,10 +3,10 @@ import streamlit as st
 from dotenv import dotenv_values
 env = dotenv_values('.env')
 
-from chrome import *
-from extracao_unidade import *
-from tratamento_processos import *
-from scrapping_processos import *
+from utils.chrome import *
+from scraping.extracao_unidade import *
+from utils.tratamento_processos import *
+from scraping.scrapping_processos import *
 from login import *
 import base64
 

@@ -5,7 +5,8 @@ from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
 
 from login import *
-from chrome import *
+from utils.chrome import *
+from utils.funcoes_auxiliares import *
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -92,6 +93,8 @@ def main():
             st.error(f"Informe o órgão.")
         else:
             login_sei(usuario, senha, orgao)
-            
+
+    st.write(is_local())
+        
 if __name__ == "__main__":
     main()

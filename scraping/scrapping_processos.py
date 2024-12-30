@@ -5,9 +5,10 @@ import streamlit as st
 from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
 
-from chrome import *
-from extracao_unidade import *
-from tratamento_processos import *
+from utils.chrome import *
+from scraping.extracao_unidade import *
+from utils.tratamento_processos import *
+from utils.funcoes_auxiliares import *
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -16,6 +17,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import time
 from io import BytesIO
+import re
 
 
 def converter_para_excel(df_processos):
@@ -121,6 +123,7 @@ def buscar_dados(processos):
                 pass  # Unidade tem acesso, continuar
 
             # Extrai os dados da primeira linha da tabela
+            processo_sei_format = num_processo(driver.find_element(By.XPATH, '//*[@id="divInfraBarraLocalizacao"]').text)
             data_hora = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[1]').text  # Coluna 1: Data/Horário
             unidade = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[2]').text    # Coluna 2: Unidade
             usuario_elemento = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[3]/a')
@@ -129,8 +132,8 @@ def buscar_dados(processos):
             descricao = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[4]').text  # Coluna 5: Descrição
 
             # Atualiza os dados no DataFrame
-            processos.loc[processos['Processos'] == processo, ['Data Horário', 'Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição']] = [
-                data_hora, unidade, usuario_cpf, usuario, descricao
+            processos.loc[processos['Processos'] == processo, ['Processos', 'Data Horário', 'Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição']] = [
+                processo_sei_format, data_hora, unidade, usuario_cpf, usuario, descricao
             ]
 
             # Voltar ao contexto principal

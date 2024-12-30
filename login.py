@@ -4,22 +4,22 @@ import streamlit as st
 from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
 
-from chrome import *
+from utils.chrome import *
+from utils.funcoes_auxiliares import *
 
 from selenium.webdriver.support.ui import Select
 
 import warnings
 warnings.filterwarnings('ignore')
 import time
-from chrome import *
-
 
 @st.cache_data
 def lista_orgaos_login():
 
     try:
         driver = chrome()
-        driver.get(st.secrets['SITE_SEI'])
+
+        driver.get(env['SITE_SEI'] if is_local() else st.secrets['SITE_SEI'])
 
         select_element = driver.find_element('xpath', '//*[@id="selOrgao"]')
 
@@ -61,7 +61,7 @@ def login_sei(usuario_sei, senha_sei, orgao_sei):
 
             # Abrindo o SEI
             #driver = webdriver.Chrome()
-            driver.get(st.secrets['SITE_SEI'])
+            driver.get(env['SITE_SEI'] if is_local() else st.secrets['SITE_SEI'])
 
             print('Obtendo informacoes...')
 
