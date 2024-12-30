@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv, dotenv_values
+import streamlit as st
 env = dotenv_values('.env')
 
 # Função para detectar se está rodando localmente
