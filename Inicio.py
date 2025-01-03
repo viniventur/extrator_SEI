@@ -4,7 +4,7 @@ import streamlit as st
 from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
 
-from login import *
+from utils.login import *
 from utils.chrome import *
 from utils.funcoes_auxiliares import *
 

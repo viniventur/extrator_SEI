@@ -7,7 +7,7 @@ from utils.chrome import *
 from scraping.extracao_unidade import *
 from utils.funcoes_auxiliares import *
 from scraping.scrapping_processos import *
-from login import *
+from utils.login import *
 import base64
 
 import warnings
