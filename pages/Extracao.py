@@ -35,16 +35,24 @@ if 'driver' not in st.session_state:
 
 st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
 
-# Aplicar CSS para esconder o sidebar
-hide_style = """
-    <style>
-    [data-testid="stSidebar"] {
-        display: none;
-    }
-    #MainMenu {visibility: hidden}
-    header {visibility: hidden}
-    </style>
-"""
+if is_local():
+    
+    # Aplicar CSS para esconder o sidebar
+    hide_style = """
+    """
+else:
+
+    # Aplicar CSS para esconder o sidebar
+    hide_style = """
+        <style>
+        [data-testid="stSidebar"] {
+            display: none;
+        }
+        #MainMenu {visibility: hidden}
+        header {visibility: hidden}
+        </style>
+    """
+
 st.markdown(hide_style, unsafe_allow_html=True)
 
 
@@ -86,7 +94,7 @@ def main():
         )
 
     with st.container():
-        st.markdown("<h1 style='text-align: center;'>Extração dos Dados</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center;'>Andamentos de Processos</h1>", unsafe_allow_html=True)
 
     # Layout
     if st.button("Voltar ao Início"):
@@ -126,7 +134,7 @@ def main():
                 # Output
                 with st.container():
                     st.subheader("Tabela de Processos:")
-                    buscar_dados(df_processos)
+                    buscar_dados_andamento(unidade, df_processos)
         else:
             st.error("Por favor, insira os números de processos para tratamento.")
 

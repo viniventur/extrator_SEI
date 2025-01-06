@@ -13,18 +13,28 @@ warnings.filterwarnings('ignore')
 import base64
 import time
 
-st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
+st.set_page_config(page_title='Extrator de dados do SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
 
-# Aplicar CSS para esconder o sidebar
-hide_style = """
-    <style>
-    [data-testid="stSidebar"] {
-        display: none;
-    }
-    #MainMenu {visibility: hidden}
-    header {visibility: hidden}
-    </style>
-"""
+# Config Layout (condicional de local ou online)
+
+if is_local():
+    
+    # Aplicar CSS para esconder o sidebar
+    hide_style = """
+    """
+else:
+
+    # Aplicar CSS para esconder o sidebar
+    hide_style = """
+        <style>
+        [data-testid="stSidebar"] {
+            display: none;
+        }
+        #MainMenu {visibility: hidden}
+        header {visibility: hidden}
+        </style>
+    """
+
 st.markdown(hide_style, unsafe_allow_html=True)
 
 def main():
@@ -57,8 +67,8 @@ def main():
         # Centralizando o texto no meio da tela
         st.markdown(
             """
-            <div style="display: flex; justify-content: center; align-items: center; height: 100px; text-align: center;">
-                <h1 style="font-size: 35px; margin: 0;">Extrator de Dados de Andamento de Processos do SEI</h1>
+            <div style="display: flex; justify-content: center; align-items: center; height: 60px; text-align: center;">
+                <h1 style="font-size: 35px; margin: 0;">Extrator de Dados do SEI</h1>
             </div>
             """,
             unsafe_allow_html=True

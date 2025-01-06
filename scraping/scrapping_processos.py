@@ -15,6 +15,7 @@ from selenium.webdriver.common.keys import Keys
 import warnings
 warnings.filterwarnings('ignore')
 import time
+from datetime import datetime
 from io import BytesIO
 import re
 
@@ -34,7 +35,7 @@ def converter_para_excel(df_processos):
     output.seek(0)
     return output.getvalue()
 
-def buscar_dados(processos):
+def buscar_dados_andamento(unidade, processos):
     # Tempos para execução
     tempo_curto = 0.5
     tempo_medio = 1
@@ -58,6 +59,8 @@ def buscar_dados(processos):
     inicio = time.time()
     
     try:
+
+        driver.find_element("xpath", '//*[@id="selInfraUnidades"]').send_keys(unidade)
 
         for i, processo in enumerate(processos['Processos'], start=1):
             # Atualiza o cronômetro
@@ -121,19 +124,27 @@ def buscar_dados(processos):
             except:
                 pass  # Unidade tem acesso, continuar
 
-            # Extrai os dados da primeira linha da tabela
-            processo_sei_format = num_processo_sei(driver.find_element(By.XPATH, '//*[@id="divInfraBarraLocalizacao"]').text) # coluna 0: Processo
-            data_hora = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[1]').text  # Coluna 1: Data/Horário
-            unidade = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[2]').text    # Coluna 2: Unidade
+            # DADOS:
+            processo_sei_format = num_processo_sei(driver.find_element(By.XPATH, '//*[@id="divInfraBarraLocalizacao"]').text) # coluna de Processo
+            data_hora = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[1]').text  # Coluna de Data/Horário
+            qnt_dias = cont_dias(data_hora, datetime.now())
+            unidade_elemento = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[2]/a')
+            unidade_abreviação = unidade_elemento.text # coluna de abrev unidade
+            unidade_nome = unidade_elemento.get_attribute("title") # coluna de abrev unidade
             usuario_elemento = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[3]/a')
-            usuario_cpf = usuario_elemento.text    # Coluna 3: Usuário CPF
-            usuario = usuario_elemento.get_attribute("alt") # Coluna 4: Usuário
-            descricao = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[4]').text  # Coluna 5: Descrição
+            usuario_cpf = usuario_elemento.text    # Coluna de Usuário CPF
+            usuario = usuario_elemento.get_attribute("title") # Coluna de Usuário
+            descricao = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[4]').text  # Coluna de Descrição
 
             # Atualiza os dados no DataFrame
-            processos.loc[processos['Processos'] == processo, ['Processos', 'Data Horário', 'Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição']] = [
-                processo_sei_format, data_hora, unidade, usuario_cpf, usuario, descricao
+            processos.loc[processos['Processos'] == processo, ['Processos', 'Data Horário', 'Qnt. Dias', 'Unidade Atual',
+                                                                'Nome Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição'
+                                                                ]] = [
+                processo_sei_format, data_hora, qnt_dias, unidade_abreviação, unidade_nome, usuario_cpf, usuario, descricao
             ]
+
+            # ordenando por dias de andamento:
+            processos.sort_values(by='Qnt. Dias', ascending=True)
 
             # Voltar ao contexto principal
             driver.switch_to.default_content()
@@ -141,6 +152,7 @@ def buscar_dados(processos):
     except Exception as e:
         # Em caso de erro, exibe a mensagem e continua
         st.error(f"Erro durante o processamento: {e}")
+        driver.switch_to.default_content()
 
     # Exportando em excel
     df_processos_xlsx = converter_para_excel(processos)
