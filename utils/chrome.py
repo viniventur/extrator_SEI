@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from utils.funcoes_auxiliares import *
 
 def chrome():
     service = Service('chromedriver/chromedriver.exe')
@@ -12,5 +13,9 @@ def chrome():
     chrome_options.add_argument('--disable-blink-features=AutomationControlled')
     chrome_options.add_extension('chromedriver/SEI Pro - Chrome Web Store 1.5.5.54.crx')
 
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    if is_local():
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+    else:
+        driver = webdriver.Chrome(options=chrome_options)
+
     return driver
