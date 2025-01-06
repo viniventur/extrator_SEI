@@ -4,7 +4,6 @@ from selenium.webdriver.chrome.service import Service
 from utils.funcoes_auxiliares import *
 
 def chrome():
-    service = Service('chromedriver/chromedriver.exe')
     chrome_options = Options()
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--headless')
@@ -14,6 +13,7 @@ def chrome():
     chrome_options.add_extension('chromedriver/SEI Pro - Chrome Web Store 1.5.5.54.crx')
 
     if is_local():
+        service = Service('chromedriver/chromedriver.exe')
         driver = webdriver.Chrome(service=service, options=chrome_options)
     else:
         driver = webdriver.Chrome(options=chrome_options)
