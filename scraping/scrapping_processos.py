@@ -62,6 +62,14 @@ def buscar_dados_andamento(unidade, processos):
 
         driver.find_element("xpath", '//*[@id="selInfraUnidades"]').send_keys(unidade)
 
+        colunas_sem_processo = ['Data Horário', 'Qnt. Dias', 'Unidade Atual',
+            'Nome Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição'
+            ]
+
+        colunas = ['Processos'] + colunas_sem_processo
+        
+        processos[colunas_sem_processo] = ''
+        
         for i, processo in enumerate(processos['Processos'], start=1):
             # Atualiza o cronômetro
             tempo_decorrido = time.time() - inicio
@@ -86,9 +94,7 @@ def buscar_dados_andamento(unidade, processos):
             try:
                 elemento_nao_encontrado = driver.find_element("xpath", '//*[@id="sbmPesquisar"]')
                 if elemento_nao_encontrado.is_displayed():
-                    processos.loc[processos['Processos'] == processo, ['Data Horário', 'Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição']] = [
-                        "Processo Não Encontrado", "Processo Não Encontrado", "Processo Não Encontrado", "Processo Não Encontrado", "Processo Não Encontrado"
-                    ]
+                    processos.loc[processos['Processos'] == processo, colunas_sem_processo] = "Processo Não encontrado"
                     continue
             except:
                 pass  # Processo encontrado, continuar
@@ -100,9 +106,7 @@ def buscar_dados_andamento(unidade, processos):
                 driver.find_element("xpath", '//*[@id="divConsultarAndamento"]/a/span').click()  # Consultar andamento
             except:
                 driver.switch_to.default_content()
-                processos.loc[processos['Processos'] == processo, ['Data Horário', 'Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição']] = [
-                    "Unidade Não Possui Acesso", "Unidade Não Possui Acesso", "Unidade Não Possui Acesso", "Unidade Não Possui Acesso", "Unidade Não Possui Acesso"
-                ]
+                processos.loc[processos['Processos'] == processo, colunas_sem_processo] = "Unidade Não Possui Acesso"
                 continue
 
             # Alternar para o iframe 'ifrVisualizacao'
@@ -116,9 +120,7 @@ def buscar_dados_andamento(unidade, processos):
             try:
                 mensagem_sem_acesso = driver.find_element("xpath", '//*[@id="divMensagem"]/label')
                 if mensagem_sem_acesso.is_displayed():
-                    processos.loc[processos['Processos'] == processo, ['Data Horário', 'Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição']] = [
-                        "Unidade Não Possui Acesso", "Unidade Não Possui Acesso", "Unidade Não Possui Acesso", "Unidade Não Possui Acesso", "Unidade Não Possui Acesso"
-                    ]
+                    processos.loc[processos['Processos'] == processo, colunas_sem_processo] = "Unidade Não Possui Acesso"
                     driver.switch_to.default_content()
                     continue
             except:
@@ -127,7 +129,7 @@ def buscar_dados_andamento(unidade, processos):
             # DADOS:
             processo_sei_format = num_processo_sei(driver.find_element(By.XPATH, '//*[@id="divInfraBarraLocalizacao"]').text) # coluna de Processo
             data_hora = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[1]').text  # Coluna de Data/Horário
-            qnt_dias = cont_dias(data_hora, datetime.now())
+            qnt_dias = str(cont_dias(data_hora, datetime.now()))
             unidade_elemento = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[2]/a')
             unidade_abreviação = unidade_elemento.text # coluna de abrev unidade
             unidade_nome = unidade_elemento.get_attribute("title") # coluna de abrev unidade
@@ -137,14 +139,9 @@ def buscar_dados_andamento(unidade, processos):
             descricao = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[4]').text  # Coluna de Descrição
 
             # Atualiza os dados no DataFrame
-            processos.loc[processos['Processos'] == processo, ['Processos', 'Data Horário', 'Qnt. Dias', 'Unidade Atual',
-                                                                'Nome Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição'
-                                                                ]] = [
+            processos.loc[processos['Processos'] == processo, colunas] = [
                 processo_sei_format, data_hora, qnt_dias, unidade_abreviação, unidade_nome, usuario_cpf, usuario, descricao
             ]
-
-            # ordenando por dias de andamento:
-            processos.sort_values(by='Qnt. Dias', ascending=True)
 
             # Voltar ao contexto principal
             driver.switch_to.default_content()
@@ -153,6 +150,9 @@ def buscar_dados_andamento(unidade, processos):
         # Em caso de erro, exibe a mensagem e continua
         st.error(f"Erro durante o processamento: {e}")
         driver.switch_to.default_content()
+
+    # ordenando as colunas
+    processos = processos[colunas]
 
     # Exportando em excel
     df_processos_xlsx = converter_para_excel(processos)
