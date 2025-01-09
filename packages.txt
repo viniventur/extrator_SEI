@@ -1,1 +1,2 @@
-chromedriver-py
+chromium
+chromium-driver
