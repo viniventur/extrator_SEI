@@ -84,7 +84,7 @@ def login_sei(usuario_sei, senha_sei, orgao_sei):
                 driver.quit()
             except:
                 st.success('Acesso efetuado! Redirecionando, aguarde...')
-                st.switch_page('pages/Extracao.py')              
+                st.switch_page('pages/1_Andamento de processos.py')              
 
     except Exception as e:
 

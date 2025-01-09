@@ -33,7 +33,7 @@ if 'driver' not in st.session_state:
     st.cache_resource.clear()
     st.switch_page('Inicio.py')
 
-st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
+st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg')
 
 if is_local():
     
@@ -45,9 +45,6 @@ else:
     # Aplicar CSS para esconder o sidebar
     hide_style = """
         <style>
-        [data-testid="stSidebar"] {
-            display: none;
-        }
         #MainMenu {visibility: hidden}
         header {visibility: hidden}
         </style>
@@ -94,7 +91,7 @@ def main():
         )
 
     with st.container():
-        st.markdown("<h1 style='text-align: center;'>Andamentos de Processos</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center;'>Andamento de Processos</h1>", unsafe_allow_html=True)
 
     # Layout
     if st.button("Voltar ao Início"):
