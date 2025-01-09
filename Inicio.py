@@ -7,7 +7,7 @@ env = dotenv_values('.env')
 from utils.login import *
 from utils.chrome import *
 from utils.funcoes_auxiliares import *
-
+from chromedriver.teste import *
 import warnings
 warnings.filterwarnings('ignore')
 import base64
@@ -66,9 +66,9 @@ def main():
     with st.container():
         # Centralizando o texto no meio da tela
         st.markdown(
-            """
+            f"""
             <div style="display: flex; justify-content: center; align-items: center; height: 60px; text-align: center;">
-                <h1 style="font-size: 35px; margin: 0;">Extrator de Dados do SEI</h1>
+                <h1 style="font-size: 35px; margin: 0;">Extrator de Dados do SEI - {tijas}</h1>
             </div>
             """,
             unsafe_allow_html=True
