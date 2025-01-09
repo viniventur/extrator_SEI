@@ -67,7 +67,8 @@ def buscar_dados_andamento(unidade, processos):
     cronometro_texto = st.empty()  # Espaço para o cronômetro
 
     # Calcula e exibe o tempo estimado
-    tempo_estimado_total = total_processos * 6  # 6 segundos por processo
+    tempo_medio_processo = 7 # segundos por processo
+    tempo_estimado_total = total_processos * tempo_medio_processo
     minutos_estimados, segundos_estimados = divmod(tempo_estimado_total, 60)
     tempo_estimado_formatado = f"{int(minutos_estimados)}min {int(segundos_estimados)}s"
     st.write(f"Tempo estimado para concluir a busca: {tempo_estimado_formatado}")
@@ -131,7 +132,7 @@ def buscar_dados_andamento(unidade, processos):
 
             # Alternar para o iframe 'ifrVisualizacao'
             mudar_iframe('visualizacao')
-            time.sleep(tempo_medio)
+            time.sleep(tempo_longo)
             
             # Verificar se a unidade não tem acesso ao processo
             try:
@@ -149,12 +150,12 @@ def buscar_dados_andamento(unidade, processos):
 
             # Raspagem de unidades em que o proc esta aberto
             mudar_iframe('visualizacao')
-            time.sleep(1.5)
+            time.sleep(tempo_longo)
 
             try:
                 unidade_andamento = driver.find_element("xpath", '//*[@id="capaProcessoPro"]/div[1]/div[2]').text
             except:
-                time.sleep(1.5)
+                time.sleep(tempo_longo)
                 try:
                     unidade_andamento = driver.find_element("xpath", '//*[@id="capaProcessoPro"]/div[1]/div[2]').text
                 except Exception as e:
@@ -163,6 +164,7 @@ def buscar_dados_andamento(unidade, processos):
 
             
             # Link permanente do processo
+            time.sleep(tempo_longo)
             id_procedimento = driver.find_element("xpath", '//*[@id="capaProcessoPro"]/div[3]/div[2]/a[2]').get_attribute('data-id_procedimento')
             link_proc = (env['LINK_PROC_MODELO'] if is_local() else st.secrets['LINK_PROC_MODELO']) + id_procedimento
 
