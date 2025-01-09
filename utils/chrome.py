@@ -16,7 +16,7 @@ def chrome():
         service = Service('chromedriver_windows.exe')
         driver = webdriver.Chrome(service=service, options=chrome_options)
     else:
-        service = Service('chromedriver_linux.exe')
+        service = Service('chromedriver_linux')
         driver = webdriver.Chrome(service=service, options=chrome_options)
 
     return driver
