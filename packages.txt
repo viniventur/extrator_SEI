@@ -1,2 +1,4 @@
-chromium
-chromium-driver
+undetected-chromedriver
+chromedriver-py
+chromedriver-binary
+chromedriver-autoinstaller

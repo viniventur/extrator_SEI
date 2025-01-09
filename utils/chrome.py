@@ -10,7 +10,7 @@ def chrome():
     chrome_options.add_argument('--disable-dev-shm-usage')
     chrome_options.add_experimental_option('detach', True)
     chrome_options.add_argument('--disable-blink-features=AutomationControlled')
-    chrome_options.add_argument('--load-extension=SEI Pro - Chrome Web Store 1.5.5.54.crx')
+    chrome_options.add_extension(r'SEI Pro - Chrome Web Store 1.5.5.54.crx')
 
     if is_local():
         service = Service('chromedriver.exe')
