@@ -68,7 +68,7 @@ def main():
         st.markdown(
             f"""
             <div style="display: flex; justify-content: center; align-items: center; height: 60px; text-align: center;">
-                <h1 style="font-size: 35px; margin: 0;">Extrator de Dados do SEI - {tijas}</h1>
+                <h1 style="font-size: 35px; margin: 0;">Extrator de Dados do SEI - {teste()}</h1>
             </div>
             """,
             unsafe_allow_html=True
