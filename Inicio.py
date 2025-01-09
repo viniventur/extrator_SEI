@@ -7,7 +7,7 @@ env = dotenv_values('.env')
 from utils.login import *
 from utils.chrome import *
 from utils.funcoes_auxiliares import *
-from chromedriverss.teste import *
+from teste import *
 import warnings
 warnings.filterwarnings('ignore')
 import base64
