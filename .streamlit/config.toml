@@ -5,3 +5,6 @@ primaryColor="#005CA8"
 [ui]
 # Define o layout centralizado sem sidebar
 sidebar_state = "collapsed"
+
+[server]
+runOnSave = true
