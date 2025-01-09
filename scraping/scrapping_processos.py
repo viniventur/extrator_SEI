@@ -35,6 +35,9 @@ def mudar_iframe(iframe):
         driver.switch_to.default_content()
         iframe_visualizacao = driver.find_element('name', "ifrVisualizacao")
         driver.switch_to.frame(iframe_visualizacao)
+    
+    elif (iframe == 'default'):
+        driver.switch_to.default_content()
 
 
 def converter_para_excel(df_processos):
@@ -150,22 +153,26 @@ def buscar_dados_andamento(unidade, processos):
 
             # Raspagem de unidades em que o proc esta aberto
             mudar_iframe('visualizacao')
-            time.sleep(tempo_longo)
+            time.sleep(tempo_curto)
 
             try:
-                unidade_andamento = driver.find_element("xpath", '//*[@id="capaProcessoPro"]/div[1]/div[2]').text
+                unidade_andamento = driver.find_element("xpath", '//*[@id="divInformacao"]').text
             except:
                 time.sleep(tempo_longo)
                 try:
-                    unidade_andamento = driver.find_element("xpath", '//*[@id="capaProcessoPro"]/div[1]/div[2]').text
+                    unidade_andamento = driver.find_element("xpath", '//*[@id="divInformacao"]').text
                 except Exception as e:
                     print(f"Erro persistente: {e}")
                     unidade_andamento = "Erro ao buscar unidade_andamento"
 
             
             # Link permanente do processo
-            time.sleep(tempo_longo)
-            id_procedimento = driver.find_element("xpath", '//*[@id="capaProcessoPro"]/div[3]/div[2]/a[2]').get_attribute('data-id_procedimento')
+            time.sleep(tempo_curto)
+            mudar_iframe('default')
+            link_isca = driver.find_element("xpath", '//*[@id="ifrArvore"]').get_attribute('src') # iframe da arvore
+            id_procedimento = re.search(r"id_procedimento=(\d+)", link_isca).group(1)
+            
+            # juncao do id_procedimento com link modelo
             link_proc = (env['LINK_PROC_MODELO'] if is_local() else st.secrets['LINK_PROC_MODELO']) + id_procedimento
 
             # Raspagem de documendo de encerramento de processo
