@@ -52,6 +52,14 @@ else:
 
 st.markdown(hide_style, unsafe_allow_html=True)
 
+if is_local():
+    st.sidebar.page_link('Inicio.py', label='Início')
+    st.sidebar.page_link('pages/1_Andamento de processos.py', label='Andamento de Processos')
+    st.sidebar.page_link('pages/2_Contagem de documentos.py', label='Contagem de documentos')
+else:
+    st.sidebar.page_link('Inicio.py', label='Início')
+    st.sidebar.page_link('pages/1_Andamento de processos.py', label='Andamento de Processos')
+
 
 def main():
     

@@ -4,9 +4,11 @@ from dotenv import dotenv_values
 env = dotenv_values('.env')
 
 from utils.chrome import *
-from scraping.extracao_unidade import *
+from utils.tipos_docs import *
 from utils.funcoes_auxiliares import *
+from scraping.extracao_unidade import *
 from scraping.scrapping_processos import *
+from scraping.contagem_docs import *
 from utils.login import *
 import base64
 
@@ -105,44 +107,64 @@ def main():
     )
 
     # Rascunho do andamento de processos
+    # Lista de seleção
+    lista_unidades = lista_unidades_sei()
+    unidade = st.selectbox('Selecione a Unidade', lista_unidades)
 
-    # # Lista de seleção
-    # lista_unidades = lista_unidades_sei()
-    # unidade = st.selectbox('Selecione a Unidade', lista_unidades)
+    # Lista de Processos
+    lista_processos = st.text_area('Informe os Processos', value=default_value, key="processos_input")
 
-    # # Text area
-    # lista_processos = st.text_area('Informe os Processos', value=default_value, key="processos_input")
+    # Lista de documentos SEI
+    tipos_documentoss = tipos_documentos()
+    docs = st.multiselect('Selecione os Tipos de Documentos', tipos_documentoss, max_selections=10, placeholder="Tipos de documentos")
+    st.write(docs)
 
-    # # Dividindo os botões em duas colunas
-    # col1, col2 = st.columns([1, 1])
+    # Dividindo os botões em duas colunas
+    col1, col2 = st.columns([1, 1])
 
-    # with col1:
-    #     buscar = st.button("Buscar dados dos processos inseridos")
+    with col1:
+        buscar = st.button("Buscar dados dos processos inseridos")
 
-    # with col2:
-    #     limpar = st.button("Limpar")
+    with col2:
+        limpar = st.button("Limpar")
 
-    # # Lógica do botão "Limpar"
-    # if limpar:
-    #     st.session_state.limpar_input = True  # Ativa a flag para limpar
-    #     st.rerun()  # Recarrega a interface
 
-    # # Lógica do botão "Buscar"
-    # if buscar:
-    #     if lista_processos:
-    #         with st.spinner('Buscando dados, aguarde...'):
-    #             resultado, total_linhas, linhas_validas = tratar_processos_input(lista_processos)
+    # Lógica do botão "Limpar"
+    if limpar:
+        st.session_state.limpar_input = True  # Ativa a flag para limpar
+        st.rerun()  # Recarrega a interface
 
-    #             # Criação do DataFrame
-    #             resultado = [linha.strip() for linha in resultado.splitlines() if linha.strip()]
-    #             df_processos = pd.DataFrame({"Processos": resultado})
+    # Lógica do botão "Buscar"
+    if buscar:
+        if lista_processos:
 
-    #             # Output
-    #             with st.container():
-    #                 st.subheader("Tabela de Processos:")
-    #                 buscar_dados_andamento(unidade, df_processos)
-    #     else:
-    #         st.error("Por favor, insira os números de processos para tratamento.")
+            if docs:
+
+                with st.spinner('Buscando dados, aguarde...'):
+                    resultado, total_linhas, linhas_validas = tratar_processos_input(lista_processos)
+
+                    # Criação do DataFrame
+                    resultado = [linha.strip() for linha in resultado.splitlines() if linha.strip()]
+                    df_processos = pd.DataFrame({"Processos": resultado})
+
+                    # Output
+                    with st.container():
+                        st.subheader("Tabela de Processos:")
+                        #buscar_dados_andamento(unidade, df_processos)
+                        # Adicionar colunas dinamicamente para cada documento selecionado
+                        for doc in docs:
+                            df_processos[doc] = None  # Valores iniciais podem ser ajustados
+
+                        # Exibir o DataFrame
+                        st.dataframe(df_processos)
+                        buscar_contagem_docs(unidade, df_processos)
+
+            else: 
+                st.error("Por favor, insira os tipos de documentos para contagem.")
+        else:
+            st.error("Por favor, insira os números de processos para tratamento.")
+
+
 
 if __name__ == "__main__":
     main()

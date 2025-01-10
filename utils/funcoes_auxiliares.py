@@ -2,6 +2,10 @@ import os
 from dotenv import load_dotenv, dotenv_values
 import streamlit as st
 from datetime import datetime
+import pandas as pd
+from io import BytesIO
+from openpyxl.utils import get_column_letter
+import time
 env = dotenv_values('.env')
 
 # Função para detectar se está rodando localmente
@@ -57,4 +61,100 @@ def cont_dias(data_x, data_y):
     diferenca = (data_y - data_x).days
 
     return diferenca
+
+def converter_para_excel(df_processos, nome_aba):
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df_processos.to_excel(writer, index=False, sheet_name=nome_aba)
+        worksheet = writer.sheets[nome_aba]
+        for col_idx, column in enumerate(df_processos.columns, start=1):
+            max_length = max(
+                df_processos[column].astype(str).map(len).max(),
+                len(column)
+            ) + 2
+            col_letter = get_column_letter(col_idx)
+            worksheet.column_dimensions[col_letter].width = max_length
+    output.seek(0)
+    return output.getvalue()
+
+
+def mudar_iframe(iframe):
+
+    driver = st.session_state.driver
+
+    if (iframe == 'arvore'):
+
+        driver.switch_to.default_content()
+        iframe_arvore = driver.find_element('name', "ifrArvore")
+        driver.switch_to.frame(iframe_arvore)
+
+    elif (iframe == 'visualizacao'):
+
+        driver.switch_to.default_content()
+        iframe_visualizacao = driver.find_element('name', "ifrVisualizacao")
+        driver.switch_to.frame(iframe_visualizacao)
+    
+    elif (iframe == 'default'):
+        driver.switch_to.default_content()
+
+
+def verificar_acesso_processo(processo):
+    """
+    Verifica a existência ou acesso a um processo no sistema e atualiza o DataFrame 'processos'.
+
+    Args:
+        processo (str): Identificador do processo a ser verificado.
+    Returns:
+        bool: Retorna True se o acesso foi finalizado (não encontrado ou sem acesso), False caso contrário.
+        mensagem: Mensagem de nao acesso
+    """
+
+    driver = st.session_state.driver
+
+    # Tempos para execução
+    tempo_curto = 0.5
+    tempo_medio = 1
+    tempo_longo = 1.5
+
+    # =============================================
+    # VERIFICANDO A EXISTÊNCIA OU ACESSO AO PROCESSO
+    # =============================================
+
+    # Verificar se o processo não foi encontrado
+    try:
+        elemento_nao_encontrado = driver.find_element("xpath", '//*[@id="sbmPesquisar"]')
+        if elemento_nao_encontrado.is_displayed():
+            valor_acesso = "Processo Não encontrado"
+            return False, valor_acesso
+    except:
+        pass  # Processo encontrado, continuar
+
+    # Alternar para o iframe 'arvore' e verificar acesso
+    try:
+        mudar_iframe('arvore')
+        driver.find_element("xpath", '//*[@id="divConsultarAndamento"]/a/span')  # Consultar andamento
+    except:
+        driver.switch_to.default_content()
+        valor_acesso = "Unidade Não Possui Acesso"
+        return False, valor_acesso
+
+    # Alternar para o iframe 'visualizacao'
+    mudar_iframe('visualizacao')
+    time.sleep(tempo_longo)
+
+    # Verificar se a unidade não tem acesso ao processo
+    try:
+        mensagem_sem_acesso = driver.find_element("xpath", '//*[@id="divMensagem"]/label')
+        if mensagem_sem_acesso.is_displayed():
+            valor_acesso = "Unidade Não Possui Acesso"
+            driver.switch_to.default_content()
+            return False, valor_acesso
+    except:
+        pass  # Unidade tem acesso, continuar
+    
+    valor_acesso = 'Acesso liberado'
+
+    return True, valor_acesso
+
+
 

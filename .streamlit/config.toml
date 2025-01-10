@@ -8,3 +8,6 @@ sidebar_state = "collapsed"
 
 [server]
 runOnSave = true
+
+[client]
+showSidebarNavigation = false

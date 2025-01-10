@@ -1,6 +1,5 @@
 import pandas as pd
 import os
-from openpyxl.utils import get_column_letter
 import streamlit as st
 from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
@@ -16,44 +15,8 @@ import warnings
 warnings.filterwarnings('ignore')
 import time
 from datetime import datetime
-from io import BytesIO
 import re
 
-
-def mudar_iframe(iframe):
-
-    driver = st.session_state.driver
-
-    if (iframe == 'arvore'):
-
-        driver.switch_to.default_content()
-        iframe_arvore = driver.find_element('name', "ifrArvore")
-        driver.switch_to.frame(iframe_arvore)
-
-    elif (iframe == 'visualizacao'):
-
-        driver.switch_to.default_content()
-        iframe_visualizacao = driver.find_element('name', "ifrVisualizacao")
-        driver.switch_to.frame(iframe_visualizacao)
-    
-    elif (iframe == 'default'):
-        driver.switch_to.default_content()
-
-
-def converter_para_excel(df_processos):
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df_processos.to_excel(writer, index=False, sheet_name="Processos SEI - Unidades atuais")
-        worksheet = writer.sheets["Processos SEI - Unidades atuais"]
-        for col_idx, column in enumerate(df_processos.columns, start=1):
-            max_length = max(
-                df_processos[column].astype(str).map(len).max(),
-                len(column)
-            ) + 2
-            col_letter = get_column_letter(col_idx)
-            worksheet.column_dimensions[col_letter].width = max_length
-    output.seek(0)
-    return output.getvalue()
 
 def buscar_dados_andamento(unidade, processos):
     # Tempos para execução
@@ -81,9 +44,11 @@ def buscar_dados_andamento(unidade, processos):
     
     try:
 
+        mudar_iframe('default')
+
         driver.find_element("xpath", '//*[@id="selInfraUnidades"]').send_keys(unidade)
 
-        colunas_sem_processo = ['Data Horário', 'Qnt. Dias', 'Concluído', 'Unidade Atual',
+        colunas_sem_processo = ['Data Horário', 'Qnt. Dias', 'Status', 'Unidade Atual',
             'Nome Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição', 'Processo aberto nas unidades', 'Link do Processo'
             ]
 
@@ -115,37 +80,12 @@ def buscar_dados_andamento(unidade, processos):
             # VERIFICANDO A EXISTENCIA OU ACESSO AO PROCESSO
             # =============================================
 
-            # Verificar se o processo não foi encontrado
-            try:
-                elemento_nao_encontrado = driver.find_element("xpath", '//*[@id="sbmPesquisar"]')
-                if elemento_nao_encontrado.is_displayed():
-                    processos.loc[processos['Processos'] == processo, colunas_sem_processo] = "Processo Não encontrado"
-                    continue
-            except:
-                pass  # Processo encontrado, continuar
+            status, mensagem = verificar_acesso_processo(processo)
 
-            # Alternar para o iframe 'ifrArvore'
-            try:
-                mudar_iframe('arvore')
-                driver.find_element("xpath", '//*[@id="divConsultarAndamento"]/a/span')  # Consultar andamento
-            except:
-                driver.switch_to.default_content()
-                processos.loc[processos['Processos'] == processo, colunas_sem_processo] = "Unidade Não Possui Acesso"
-                continue
-
-            # Alternar para o iframe 'ifrVisualizacao'
-            mudar_iframe('visualizacao')
-            time.sleep(tempo_longo)
-            
-            # Verificar se a unidade não tem acesso ao processo
-            try:
-                mensagem_sem_acesso = driver.find_element("xpath", '//*[@id="divMensagem"]/label')
-                if mensagem_sem_acesso.is_displayed():
-                    processos.loc[processos['Processos'] == processo, colunas_sem_processo] = "Unidade Não Possui Acesso"
-                    driver.switch_to.default_content()
-                    continue
-            except:
-                pass  # Unidade tem acesso, continuar
+            if not status:
+                processos.loc[processos['Processos'] == processo, processos.drop('Processos', axis=1).columns] = mensagem
+                processos.loc[processos['Processos'] == processo, 'Link do Processo'] = env['SITE_SEI'] if is_local() else st.secrets['SITE_SEI']
+                continue               
 
             # =============================================
             # PROCESSO DE RASPAGEM
@@ -174,6 +114,7 @@ def buscar_dados_andamento(unidade, processos):
             
             # juncao do id_procedimento com link modelo
             link_proc = (env['LINK_PROC_MODELO'] if is_local() else st.secrets['LINK_PROC_MODELO']) + id_procedimento
+
 
             # Raspagem de documendo de encerramento de processo
             mudar_iframe('visualizacao')
@@ -241,7 +182,7 @@ def buscar_dados_andamento(unidade, processos):
     processos_display['Acessar Processo'] = processos_display['Link do Processo']
   
     # Exportando em excel
-    df_processos_xlsx = converter_para_excel(processos)
+    df_processos_xlsx = converter_para_excel(processos, "Processos SEI - Unidades atuais")
 
     # Botão de download do Excel
     botao_download = st.download_button(
@@ -251,7 +192,7 @@ def buscar_dados_andamento(unidade, processos):
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-
+    
     dataframe_final = st.dataframe(processos_display,
                                    column_config={
                                        'Acessar Processo': st.column_config.LinkColumn(
@@ -259,11 +200,11 @@ def buscar_dados_andamento(unidade, processos):
                                             display_text="Acessar"
                                        )
                                    }, 
-                                   column_order=('Processos', 'Acessar Processo', 'Data Horário', 'Qnt. Dias', 'Concluído', 'Unidade Atual',
+                                   column_order=('Processos', 'Acessar Processo', 'Data Horário', 'Qnt. Dias', 'Status', 'Unidade Atual',
                                                  'Nome Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição',
                                                   'Processo aberto nas unidades', 'Link do Processo'
                                          ), 
                                      hide_index=True
                                    )
-    
+
     return dataframe_final
