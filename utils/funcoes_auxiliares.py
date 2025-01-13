@@ -5,6 +5,7 @@ from datetime import datetime
 import pandas as pd
 from io import BytesIO
 from openpyxl.utils import get_column_letter
+import base64
 import time
 env = dotenv_values('.env')
 
@@ -12,8 +13,26 @@ env = dotenv_values('.env')
 def is_local():
     return "IS_LOCAL" in env
 
+def excluir_driver():
+    if 'driver' in st.session_state:
+        try:
+            st.session_state.driver.quit()
+        except Exception as e:
+            st.warning(f"Erro ao encerrar o driver: {e}")
+        del st.session_state['driver']
+
+def voltar():
+    with st.spinner('Redirecionando...'):
+        excluir_driver()
+        st.cache_resource.clear()
+        st.switch_page('Inicio.py')
+
 # Filtra apenas os numeros de processos e padroniza
 import re
+
+def get_image_as_base64(file_path):
+    with open(file_path, "rb") as file:
+        return base64.b64encode(file.read()).decode("utf-8")
 
 def num_processo_sei(processo):
     padrao = r"E:\d{5}\.\d{10}/\d{4}"
@@ -31,6 +50,7 @@ def tratar_processos_input(input_text):
     resultado = "\n".join(linhas_tratadas)
 
     return resultado, len(linhas_tratadas), len(linhas_tratadas)
+
 
 # Contagem de dias entre datas do sei
 

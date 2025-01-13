@@ -8,6 +8,8 @@ from utils.chrome import *
 from utils.funcoes_auxiliares import *
 
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -83,7 +85,12 @@ def login_sei(usuario_sei, senha_sei, orgao_sei):
                 alerta.accept()
                 driver.quit()
             except:
-                st.success('Acesso efetuado! Redirecionando, aguarde...')
+                nome_elemento = driver.find_element(By.XPATH, '//*[@id="lnkUsuarioSistema"]')
+                nome = nome_elemento.get_attribute("title")
+                nome = nome.split()[0]
+                st.session_state.nome_usuario = nome
+                st.success(f'Olá, {nome}! Acesso efetuado! Redirecionando, aguarde...')
+                time.sleep(2)
                 st.switch_page('pages/1_Andamento de processos.py')              
 
     except Exception as e:

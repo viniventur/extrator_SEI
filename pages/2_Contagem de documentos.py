@@ -3,13 +3,14 @@ import streamlit as st
 from dotenv import dotenv_values
 env = dotenv_values('.env')
 
+from utils.login import *
 from utils.chrome import *
 from utils.tipos_docs import *
 from utils.funcoes_auxiliares import *
 from scraping.extracao_unidade import *
 from scraping.scrapping_processos import *
 from scraping.contagem_docs import *
-from utils.login import *
+from sidebar import *
 import base64
 
 import warnings
@@ -56,7 +57,11 @@ st.markdown(hide_style, unsafe_allow_html=True)
 
 
 def main():
+
+    st.session_state.pag = 'contagem'
     
+    run_sidebar()
+
     # Inicializar a flag auxiliar para limpar o input
     if "limpar_input" not in st.session_state:
         st.session_state.limpar_input = False
@@ -71,22 +76,15 @@ def main():
     # Criar um contêiner fixo no topo da página
     header = st.container()
 
-    def get_image_as_base64(file_path):
-        with open(file_path, "rb") as file:
-            return base64.b64encode(file.read()).decode("utf-8")
-
-    logo_path_CGE = 'src/assets/Identidades visual/Logo CGE Governo/LOGO GOV-branco.png'
-    logo_path_OGP = 'src/assets/Identidades visual/OGP/APRESENTAÇÃO_LOGO_-_OBSERVATÓRIO_DA_GESTÃO_PÚBLICA_BRANCO_TRANSP.png'
-    logo_base64_CGE = get_image_as_base64(logo_path_CGE)
-    logo_base64_OGP = get_image_as_base64(logo_path_OGP)
+    logo_path_CGE_OGP = 'src/assets/Identidades visual/logo_CGE_OGP_transp.png'
+    logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)
 
     with st.container():
         # Centralizando as imagens lado a lado
         st.markdown(
             f"""
             <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
-                <img src="data:image/png;base64,{logo_base64_CGE}" style="margin-right: 0px; width: 300px;">
-                <img src="data:image/png;base64,{logo_base64_OGP}" style="width: 250px;">
+                <img src="data:image/png;base64,{logo_base64_CGE_OGP}" style="margin-right: 0px; width: 550px;">
             </div>
             """,
             unsafe_allow_html=True

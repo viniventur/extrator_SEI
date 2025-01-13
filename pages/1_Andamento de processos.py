@@ -1,31 +1,19 @@
 import pandas as pd
 import streamlit as st
+from st_pages import add_page_title, get_nav_from_toml, _get_pages_from_config
 from dotenv import dotenv_values
 env = dotenv_values('.env')
 
 from utils.chrome import *
-from scraping.extracao_unidade import *
 from utils.funcoes_auxiliares import *
-from scraping.scrapping_processos import *
 from utils.login import *
+from scraping.extracao_unidade import *
+from scraping.scrapping_processos import *
+from sidebar import *
 import base64
 
 import warnings
 warnings.filterwarnings('ignore')
-
-def excluir_driver():
-    if 'driver' in st.session_state:
-        try:
-            st.session_state.driver.quit()
-        except Exception as e:
-            st.warning(f"Erro ao encerrar o driver: {e}")
-        del st.session_state['driver']
-
-def voltar():
-    with st.spinner('Redirecionando...'):
-        excluir_driver()
-        st.cache_resource.clear()
-        st.switch_page('Inicio.py')
 
 if 'driver' not in st.session_state:
     st.error('Erro, Google Chrome não respondeu, redirecionando...')
@@ -52,16 +40,11 @@ else:
 
 st.markdown(hide_style, unsafe_allow_html=True)
 
-if is_local():
-    st.sidebar.page_link('Inicio.py', label='Início')
-    st.sidebar.page_link('pages/1_Andamento de processos.py', label='Andamento de Processos')
-    st.sidebar.page_link('pages/2_Contagem de documentos.py', label='Contagem de documentos')
-else:
-    st.sidebar.page_link('Inicio.py', label='Início')
-    st.sidebar.page_link('pages/1_Andamento de processos.py', label='Andamento de Processos')
-
-
 def main():
+
+    st.session_state.pag = 'andamento'
+
+    run_sidebar()
     
     # Inicializar a flag auxiliar para limpar o input
     if "limpar_input" not in st.session_state:
@@ -77,22 +60,15 @@ def main():
     # Criar um contêiner fixo no topo da página
     header = st.container()
 
-    def get_image_as_base64(file_path):
-        with open(file_path, "rb") as file:
-            return base64.b64encode(file.read()).decode("utf-8")
-
-    logo_path_CGE = 'src/assets/Identidades visual/Logo CGE Governo/LOGO GOV-branco.png'
-    logo_path_OGP = 'src/assets/Identidades visual/OGP/APRESENTAÇÃO_LOGO_-_OBSERVATÓRIO_DA_GESTÃO_PÚBLICA_BRANCO_TRANSP.png'
-    logo_base64_CGE = get_image_as_base64(logo_path_CGE)
-    logo_base64_OGP = get_image_as_base64(logo_path_OGP)
+    logo_path_CGE_OGP = 'src/assets/Identidades visual/logo_CGE_OGP_transp.png'
+    logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)
 
     with st.container():
         # Centralizando as imagens lado a lado
         st.markdown(
             f"""
             <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
-                <img src="data:image/png;base64,{logo_base64_CGE}" style="margin-right: 0px; width: 300px;">
-                <img src="data:image/png;base64,{logo_base64_OGP}" style="width: 250px;">
+                <img src="data:image/png;base64,{logo_base64_CGE_OGP}" style="margin-right: 0px; width: 550px;">
             </div>
             """,
             unsafe_allow_html=True
