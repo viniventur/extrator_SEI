@@ -40,7 +40,7 @@ st.markdown(hide_style, unsafe_allow_html=True)
 
 def main():
 
-    st.session_state.pag = 'inicio'
+    st.session_state.pag = 'login'
 
     run_sidebar()
 
@@ -94,7 +94,7 @@ def main():
         orgao = st.selectbox("Órgão:", lista_orgaos)
 
     # Login
-    if st.button("Acessar"):
+    if st.button(":material/login: Acessar"):
         if orgao == lista_orgaos[0]:
             st.error(f"Informe o órgão.")
         else:

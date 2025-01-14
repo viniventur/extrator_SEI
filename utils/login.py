@@ -91,7 +91,7 @@ def login_sei(usuario_sei, senha_sei, orgao_sei):
                 st.session_state.nome_usuario = nome
                 st.success(f'Olá, {nome}! Acesso efetuado! Redirecionando, aguarde...')
                 time.sleep(2)
-                st.switch_page('pages/1_Andamento de processos.py')              
+                st.switch_page(modulos[1][1])              
 
     except Exception as e:
 
