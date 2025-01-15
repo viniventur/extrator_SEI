@@ -68,6 +68,7 @@ def buscar_dados_andamento(unidade, processos):
             progresso.progress(i / total_processos)
             status_texto.text(f"Buscando dados dos processos: {i} de {total_processos}.")
 
+            mudar_iframe('default')
 
             # Busca dos processos
             time.sleep(tempo_medio)
@@ -85,7 +86,7 @@ def buscar_dados_andamento(unidade, processos):
             if not status:
                 processos.loc[processos['Processos'] == processo, processos.drop('Processos', axis=1).columns] = mensagem
                 processos.loc[processos['Processos'] == processo, 'Link do Processo'] = env['SITE_SEI'] if is_local() else st.secrets['SITE_SEI']
-                continue               
+                continue      
 
             # =============================================
             # PROCESSO DE RASPAGEM

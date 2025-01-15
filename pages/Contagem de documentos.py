@@ -16,6 +16,8 @@ import base64
 import warnings
 warnings.filterwarnings('ignore')
 
+import plotly.express as px
+
 if 'driver' not in st.session_state:
     st.error('Erro, Google Chrome não respondeu, redirecionando...')
     st.cache_data.clear()
@@ -89,34 +91,27 @@ def main():
         if st.button(":material/keyboard_return: Voltar ao Início", key='inicio', help='Clique para ir ao início', use_container_width=True):
             voltar_inicio()
 
-    st.write(
-        '''
-        # Em construção 🚧
-        '''
-    )
-
     # Rascunho do andamento de processos
     # Lista de seleção
-    lista_unidades = lista_unidades_sei()
+    try:
+        lista_unidades = st.session_state.unidades_usuario
+    except Exception as e:
+        st.error(f'Erro ao obter as unidades disponíveis! Realize Login novamente.')
+        sair()
+
+
     unidade = st.selectbox('Selecione a Unidade', lista_unidades)
 
     # Lista de Processos
     lista_processos = st.text_area('Informe os Processos', value=default_value, key="processos_input")
 
+    limpar = st.button(":material/delete_forever: Limpar")
+
     # Lista de documentos SEI
     tipos_documentoss = tipos_documentos()
     docs = st.multiselect('Selecione os Tipos de Documentos', tipos_documentoss, max_selections=10, placeholder="Tipos de documentos")
-    st.write(docs)
 
-    # Dividindo os botões em duas colunas
-    col1, col2 = st.columns([1, 1])
-
-    with col1:
-        buscar = st.button(":material/search: Buscar dados dos processos inseridos")
-
-    with col2:
-        limpar = st.button(":material/delete_forever: Limpar")
-
+    buscar = st.button(":material/search: Buscar dados dos processos inseridos")
 
     # Lógica do botão "Limpar"
     if limpar:
@@ -125,6 +120,7 @@ def main():
 
     # Lógica do botão "Buscar"
     if buscar:
+
         if lista_processos:
 
             if docs:
@@ -135,6 +131,7 @@ def main():
                     # Criação do DataFrame
                     resultado = [linha.strip() for linha in resultado.splitlines() if linha.strip()]
                     df_processos = pd.DataFrame({"Processos": resultado})
+                    df_processos.drop_duplicates(subset="Processos", inplace=True)
 
                     # Output
                     with st.container():
@@ -145,8 +142,49 @@ def main():
                             df_processos[doc] = None  # Valores iniciais podem ser ajustados
 
                         # Exibir o DataFrame
-                        st.dataframe(df_processos)
-                        buscar_contagem_docs(unidade, df_processos)
+                        buscar_contagem_docs(unidade, df_processos, docs)
+
+                    # Quantidade total
+                    # Calcular a quantidade total de cada documento
+                    totais = df_processos[docs].sum()
+                    # Exibir as quantidades no formato desejado
+                    st.markdown("## Quantidade total de documentos:")
+                    for doc, total in totais.items():
+                        st.markdown(f"**{doc}**: {total}")
+
+                        
+                    # Grafico de documentos
+
+                    df_numeric = df_processos.copy()
+                    for col in df_numeric.columns:
+                        if col != "Processos":  # Evitar converter a coluna "Processos"
+                            df_numeric[col] = pd.to_numeric(df_numeric[col], errors='coerce')
+
+                    # Filtrar apenas as colunas que possuem valores numéricos ou a coluna "Processos"
+                    colunas_numericas = df_numeric.select_dtypes(include=['number']).columns
+                    df_numeric_filtered = df_numeric[["Processos"] + list(colunas_numericas)]
+
+                    # Reestruturar os dados para long format (necessário para Plotly com múltiplos eixos X)
+                    df_melted = df_numeric_filtered.melt(id_vars="Processos", var_name="Documento", value_name="Quantidade")
+
+                    # Criar o gráfico de quantidade de documento por processo
+                    fig = px.bar(
+                        df_melted,
+                        x="Quantidade",  # Categorias no eixo X (Documentos)
+                        y="Documento",  # Valores no eixo Y
+                        color="Processos",  # Diferenciar por Processo
+                        orientation='h',
+                        title="Quantidade de Documento por Processo",
+                        barmode="stack",  # Barras agrupadas
+                        text="Quantidade"
+                    )
+
+                    fig.update_layout(
+                        yaxis=dict(autorange="reversed"),
+                        xaxis=dict(showgrid=True),  # Ativar grade no eixo X
+                    )
+
+                    st.plotly_chart(fig)
 
             else: 
                 st.error("Por favor, insira os tipos de documentos para contagem.")

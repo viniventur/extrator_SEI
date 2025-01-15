@@ -31,7 +31,7 @@ def lista_unidades_sei():
         # Captura todas as opções e seus textos
         option_texts = [option.text for option in select.options]
 
-        return option_texts
+        st.session_state.unidades_usuario = option_texts
 
     except Exception as e:
 

@@ -19,7 +19,7 @@ from datetime import datetime
 from io import BytesIO
 import re
 
-def buscar_contagem_docs(unidade, processos):
+def buscar_contagem_docs(unidade, processos, docs):
 
     # Tempos para execução
     tempo_curto = 0.5
@@ -28,14 +28,15 @@ def buscar_contagem_docs(unidade, processos):
 
     driver = st.session_state.driver
 
-    # Inicializa o indicador de progresso
+    # Inicializa o indicador de progresso - PROCESSO
     total_processos = len(processos)
     progresso = st.progress(0)  # Barra de progresso inicializada
     status_texto = st.empty()  # Espaço para exibir o texto de progresso
+
     cronometro_texto = st.empty()  # Espaço para o cronômetro
 
     # Calcula e exibe o tempo estimado
-    tempo_medio_processo = 7 # segundos por processo
+    tempo_medio_processo = 5 # segundos por processo
     tempo_estimado_total = total_processos * tempo_medio_processo
     minutos_estimados, segundos_estimados = divmod(tempo_estimado_total, 60)
     tempo_estimado_formatado = f"{int(minutos_estimados)}min {int(segundos_estimados)}s"
@@ -49,7 +50,7 @@ def buscar_contagem_docs(unidade, processos):
         mudar_iframe('default')
 
         driver.find_element("xpath", '//*[@id="selInfraUnidades"]').send_keys(unidade)
-        
+                    
         for i, processo in enumerate(processos['Processos'], start=1):
 
             # Atualiza o cronômetro
@@ -63,6 +64,7 @@ def buscar_contagem_docs(unidade, processos):
             progresso.progress(i / total_processos)
             status_texto.text(f"Buscando dados dos processos: {i} de {total_processos}.")
 
+            mudar_iframe('default')
 
             # Busca dos processos
             time.sleep(tempo_medio)
@@ -79,36 +81,46 @@ def buscar_contagem_docs(unidade, processos):
 
             if not status:
                 processos.loc[processos['Processos'] == processo, processos.drop('Processos', axis=1).columns] = mensagem
-                processos.loc[processos['Processos'] == processo, 'Link do Processo'] = env['SITE_SEI'] if is_local() else st.secrets['SITE_SEI']
                 continue   
 
             # =============================================
             # PROCESSO DE RASPAGEM
             # =============================================
-            
-        st.success('ok')
 
-        return st.dataframe(processos)
+            mudar_iframe('visualizacao')
+            driver.find_element("xpath", '//img[@alt="Gerar Arquivo PDF do Processo"]').click()
+            tabela_documentos = driver.find_element(By.ID, "tblDocumentos")
 
-            
-        # # Alternar para o iframe 'ifrVisualizacao'
-        # driver.switch_to.default_content()
-        # iframe_visualizacao = driver.find_element('name', "ifrVisualizacao")
-        # driver.switch_to.frame(iframe_visualizacao)
-        # driver.find_element("xpath", '//*[@id="divArvoreAcoes"]/a[18]/img').click()
-        # # Localizar os elementos com o texto "Formulário Contratação Direta PGE"
-        # # Localizar a tabela com o ID "tblDocumentos"
-        # tabela = driver.find_element(By.ID, "tblDocumentos")
+            for doc in docs:
 
-        # # Localizar as células na tabela que contêm o texto "Formulário Contratação Direta"
-        # celulas = tabela.find_elements(By.XPATH, ".//td[contains(text(), 'Formulário Utilização da Ata de Registro de Preço')]")
+                # Localizar as células na tabela que contêm o texto "Formulário Contratação Direta"
+                celulas = tabela_documentos.find_elements(By.XPATH, f".//td[contains(text(), '{doc}')]")
 
-
-        # # Contar os elementos encontrados
-        # quantidade = len(celulas)
-        # print(f"Número de formulários encontrados: {quantidade}")
+                # Contar os elementos encontrados
+                quantidade = len(celulas)
+                processos.loc[processos['Processos'] == processo, doc] = quantidade
 
     except Exception as e:
         # Em caso de erro, exibe a mensagem e continua
         st.error(f"Erro durante o processamento: {e}")
         driver.switch_to.default_content()
+
+    # organizando para o display
+    processos_display = processos.copy()
+
+    # Exportando em excel
+    df_processos_xlsx = converter_para_excel(processos, "Processos SEI - Unidades atuais")
+
+    # Botão de download do Excel
+    botao_download = st.download_button(
+        label="Clique aqui para baixar em Excel",
+        data=df_processos_xlsx,
+        file_name="processos_sei_unidade_atual.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    dataframe_final = st.dataframe(processos_display,
+                                hide_index=True
+                            )
+
+    return dataframe_final

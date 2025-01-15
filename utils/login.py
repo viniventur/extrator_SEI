@@ -6,6 +6,7 @@ env = dotenv_values('.env')
 
 from utils.chrome import *
 from utils.funcoes_auxiliares import *
+from scraping.extracao_unidade import *
 
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
@@ -90,6 +91,7 @@ def login_sei(usuario_sei, senha_sei, orgao_sei):
                 nome = nome.split()[0]
                 st.session_state.nome_usuario = nome
                 st.success(f'Olá, {nome}! Acesso efetuado! Redirecionando, aguarde...')
+                lista_unidades_sei()
                 time.sleep(2)
                 st.switch_page(modulos[1][1])              
 

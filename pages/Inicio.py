@@ -34,9 +34,6 @@ else:
     # Aplicar CSS para esconder o sidebar
     hide_style = """
         <style>
-        [data-testid="stSidebar"] {
-            display: none;
-        }
         #MainMenu {visibility: hidden}
         header {visibility: hidden}
         </style>
@@ -72,7 +69,7 @@ def main():
         st.markdown(f'''
                  
                  <div style="display: flex; justify-content: center; align-items: center; height: 70px; text-align: bottom;">
-                <h1 style="font-size: 35px; margin: 0;">Extrator de Dados de SEI</h1>
+                <h1 style="font-size: 35px; margin: 0;">Extrator de Dados do SEI</h1>
                  </div>        
                  
                  ''',

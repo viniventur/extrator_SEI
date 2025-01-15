@@ -88,7 +88,12 @@ def main():
             voltar_inicio()
 
     # Lista de seleção
-    lista_unidades = lista_unidades_sei()
+    try:
+        lista_unidades = st.session_state.unidades_usuario
+    except Exception as e:
+        st.error(f'Erro ao obter as unidades disponíveis! Realize Login novamente.')
+        sair()
+
     unidade = st.selectbox('Selecione a Unidade', lista_unidades)
 
     # Text area
@@ -117,6 +122,7 @@ def main():
                 # Criação do DataFrame
                 resultado = [linha.strip() for linha in resultado.splitlines() if linha.strip()]
                 df_processos = pd.DataFrame({"Processos": resultado})
+                df_processos.drop_duplicates(subset="Processos", inplace=True)
 
                 # Output
                 with st.container():
