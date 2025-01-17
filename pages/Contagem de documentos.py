@@ -24,7 +24,7 @@ if 'driver' not in st.session_state:
     st.cache_resource.clear()
     st.switch_page(modulos[0][1])
 
-st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg')
+st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/logo-ogp-favicon.png')
 
 if is_local():
     
@@ -60,9 +60,6 @@ def main():
         st.session_state.limpar_input = False  # Reseta a flag
     else:
         default_value = st.session_state.get("processos_input", "")
-
-    # Criar um contêiner fixo no topo da página
-    header = st.container()
 
     logo_path_CGE_OGP = 'src/assets/Identidades visual/logo_CGE_OGP_transp.png'
     logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)

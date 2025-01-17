@@ -3,3 +3,5 @@ __pycache__/
 *.py[cod]
 .env
 teste.py
+credentials.json
+secrets.toml

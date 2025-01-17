@@ -14,7 +14,7 @@ warnings.filterwarnings('ignore')
 import base64
 import time
 
-st.set_page_config(page_title='Extrator de dados do SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/LOGO-OGP - icon.jpg', initial_sidebar_state="collapsed")
+st.set_page_config(page_title='Extrator de dados do SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/logo-ogp-favicon.png', initial_sidebar_state="collapsed")
 
 # Config Layout (condicional de local ou online)
 
@@ -31,11 +31,15 @@ else:
         [data-testid="stSidebar"] {
             display: none;
         }
+
+        [data-testid="stBaseButton-headerNoPadding"] {
+            display: none;
+        }
+
         #MainMenu {visibility: hidden}
         header {visibility: hidden}
         </style>
     """
-
 st.markdown(hide_style, unsafe_allow_html=True)
 
 def main():

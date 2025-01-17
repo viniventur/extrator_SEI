@@ -23,6 +23,13 @@ if 'driver' not in st.session_state:
     st.cache_resource.clear()
     st.switch_page(modulos[0][1])
 
+# if st.session_state.usuario != 'admin':
+#     st.error('Acesso restrito...')
+#     st.cache_data.clear()
+#     st.cache_resource.clear()
+#     st.switch_page(modulos[0][1])
+
+
 # Config Layout (condicional de local ou online)
 
 if is_local():
@@ -44,11 +51,9 @@ st.markdown(hide_style, unsafe_allow_html=True)
 
 def main():
 
-    st.session_state.pag = 'inicio'
+    st.session_state.pag = 'admin'   
 
     run_sidebar()
-
-    # Criar um contêiner fixo no topo da página
 
     logo_path_CGE_OGP = 'src/assets/Identidades visual/logo_CGE_OGP_transp.png'
     logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)
@@ -80,28 +85,36 @@ def main():
         st.markdown(f'''
                  
                  <div style="display: flex; justify-content: center; align-items: center; height: 100px; text-align: center;">
-                <h1 style="font-size: 30px; margin: 0;">Olá, {st.session_state.nome_usuario}! O que deseja acessar?</h1>
+                <h1 style="font-size: 30px; margin: 0;">Configuração de Acessos</h1>
                  </div>        
                  
                  ''',
                 unsafe_allow_html=True)
-        
-    # Filtrar os módulos a partir do índice 2
     
-    modulos_filtrados = {k: v for k, v in modulos.items() if int(k) >= 2}
-    cols= st.columns(2, gap='large', vertical_alignment='center')
-    # Inicializar variável para armazenar o módulo clicado
-    modulo_select = None
+        dados_usuarios = obter_dados_usuarios()
 
-    for i, modulo in modulos_filtrados.items():
-        with cols[i-2]:  # Posicionar o botão na coluna correspondente (-2 excluindo login e inicio)
-            #st.write(modulo[0])
-            if st.button(f'{modulo[2]} {modulo[0]}', use_container_width=True, key=f'botao-{modulo[0]}', help='Clique para mudar de página'):  # Nome do módulo como rótulo do botão
-                modulo_select = modulo[1]
+    st.dataframe(dados_usuarios)
 
-    if modulo_select:
-        with st.spinner('Redirecionando...'):
-            st.switch_page(modulo_select)
-        
-if __name__ == "__main__":
-    main()
+    if st.button('atualizar'): 
+
+        st.cache_data.clear()
+        st.rerun()
+
+    # Input para o usuário
+    cpf = st.text_input('CPF:')
+
+    # TRATAR INPUT
+
+    # Input para a senha (caracteres ocultos)
+    acesso = st.selectbox('Acesso', ['USUARIO', 'ADMIN'])
+
+    if st.button('Adicionar usuario'):
+
+        novo = {'CPF': str(cpf), 'ACESSO': acesso}
+
+        dados_usuarios.loc[len(dados_usuarios)] = novo
+
+        alterar_dados_usuario(dados_usuarios)
+
+        st.cache_data.clear()
+        st.rerun()

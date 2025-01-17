@@ -49,7 +49,7 @@ def buscar_dados_andamento(unidade, processos):
         driver.find_element("xpath", '//*[@id="selInfraUnidades"]').send_keys(unidade)
 
         colunas_sem_processo = ['Data Horário', 'Qnt. Dias', 'Status', 'Unidade Atual',
-            'Nome Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição', 'Processo aberto nas unidades', 'Link do Processo'
+            'Nome Unidade Atual', 'Atribuição', 'Atribuição CPF', 'Descrição', 'Processo aberto nas unidades', 'Link do Processo'
             ]
 
         colunas = ['Processos'] + colunas_sem_processo
@@ -104,9 +104,25 @@ def buscar_dados_andamento(unidade, processos):
                     unidade_andamento = driver.find_element("xpath", '//*[@id="divInformacao"]').text
                 except Exception as e:
                     print(f"Erro persistente: {e}")
-                    unidade_andamento = "Erro ao buscar unidade_andamento"
+                    unidade_andamento = "Erro ao buscar dados de andamento do processo"
 
-            
+            try:
+                if "Processo aberto nas unidades:" in unidade_andamento:
+                    atribuicao_nome = 'Atribuído a várias pessoas em vários órgãos. Confira onde o processo está aberto'
+                    atribuicao_cpf = 'Atribuído a várias pessoas em vários órgãos. Confira onde o processo está aberto'
+                else:
+
+                    if "(atribuído para" in unidade_andamento:
+                        atribuicao_nome = driver.find_element('xpath', '//*[@id="divInformacao"]/a[2]').text
+                        atribuicao_cpf = driver.find_element('xpath', '//*[@id="divInformacao"]/a[2]').get_attribute("title")
+                    else:
+                        atribuicao_nome = 'Não atribuído'
+                        atribuicao_cpf = 'Não atribuído'
+            except Exception as e:
+                atribuicao_nome = 'Dado não obtido'
+                atribuicao_cpf = 'Dado não obtido'
+
+
             # Link permanente do processo
             time.sleep(tempo_curto)
             mudar_iframe('default')
@@ -157,14 +173,14 @@ def buscar_dados_andamento(unidade, processos):
             unidade_elemento = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[2]/a')
             unidade_abreviação = unidade_elemento.text # coluna de abrev unidade
             unidade_nome = unidade_elemento.get_attribute("title") # coluna de abrev unidade
-            usuario_elemento = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[3]/a')
-            usuario_cpf = usuario_elemento.text    # Coluna de Usuário CPF
-            usuario = usuario_elemento.get_attribute("title") # Coluna de Usuário
+            # usuario_elemento = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[3]/a')
+            # usuario_cpf = usuario_elemento.text    # Coluna de Usuário CPF
+            # usuario = usuario_elemento.get_attribute("title") # Coluna de Usuário
             descricao = driver.find_element(By.XPATH, '//*[@id="tblHistorico"]/tbody/tr[2]/td[4]').text  # Coluna de Descrição
 
             # Atualiza os dados no DataFrame
             processos.loc[processos['Processos'] == processo, colunas] = [
-                processo_sei_format, data_hora, qnt_dias, conclusao, unidade_abreviação, unidade_nome, usuario_cpf, usuario, descricao, unidade_andamento, link_proc
+                processo_sei_format, data_hora, qnt_dias, conclusao, unidade_abreviação, unidade_nome, atribuicao_nome, atribuicao_cpf, descricao, unidade_andamento, link_proc
             ]
 
             # Voltar ao contexto principal
@@ -202,7 +218,7 @@ def buscar_dados_andamento(unidade, processos):
                                        )
                                    }, 
                                    column_order=('Processos', 'Acessar Processo', 'Data Horário', 'Qnt. Dias', 'Status', 'Unidade Atual',
-                                                 'Nome Unidade Atual', 'Usuário CPF', 'Usuário', 'Descrição',
+                                                 'Nome Unidade Atual', 'Atribuição', 'Atribuição CPF', 'Descrição',
                                                   'Processo aberto nas unidades', 'Link do Processo'
                                          ), 
                                      hide_index=True
