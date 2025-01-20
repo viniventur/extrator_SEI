@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 import base64
 import time
 
-st.set_page_config(page_title='Extrator de dados do SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/logo-ogp-favicon.png')
+st.set_page_config(page_title='Extrator de dados do SEI - OGP/CGE', page_icon='src/assets/Identidade visual/OGP/logo-ogp-favicon.png')
 
 if 'driver' not in st.session_state:
     st.error('Erro, Google Chrome não respondeu, redirecionando...')
@@ -23,11 +23,11 @@ if 'driver' not in st.session_state:
     st.cache_resource.clear()
     st.switch_page(modulos[0][1])
 
-# if st.session_state.usuario != 'admin':
-#     st.error('Acesso restrito...')
-#     st.cache_data.clear()
-#     st.cache_resource.clear()
-#     st.switch_page(modulos[0][1])
+if st.session_state.acesso != 'ADMIN':
+    st.error('Acesso restrito! Redirecionando...')
+    st.cache_data.clear()
+    st.cache_resource.clear()
+    st.switch_page(modulos[0][1])
 
 
 # Config Layout (condicional de local ou online)
@@ -51,11 +51,11 @@ st.markdown(hide_style, unsafe_allow_html=True)
 
 def main():
 
-    st.session_state.pag = 'admin'   
+    st.session_state.pag = 'ADMIN'   
 
     run_sidebar()
 
-    logo_path_CGE_OGP = 'src/assets/Identidades visual/logo_CGE_OGP_transp.png'
+    logo_path_CGE_OGP = 'src/assets/Identidade visual/logo_CGE_OGP_transp.png'
     logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)
 
     with st.container():
@@ -118,3 +118,7 @@ def main():
 
         st.cache_data.clear()
         st.rerun()
+
+
+if __name__ == "__main__":
+    main()

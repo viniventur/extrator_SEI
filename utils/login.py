@@ -6,6 +6,7 @@ env = dotenv_values('.env')
 
 from utils.chrome import *
 from utils.funcoes_auxiliares import *
+from utils.conn_gdriver import *
 from scraping.extracao_unidade import *
 
 from selenium.webdriver.support.ui import Select
@@ -43,19 +44,28 @@ def lista_orgaos_login():
 
         st.error(f"Obtenção de órgãos disponíveis no SEI falhou: {e}")
 
-def login_sei(usuario_sei, senha_sei, orgao_sei):
+def login_sei(df_usuarios, usuario_sei, senha_sei, orgao_sei):
 
-    st.write('Carregando...')
+    #st.write('Carregando...')
 
     try:
 
         driver = chrome()
 
-        if 'driver' not in st.session_state:
-            st.session_state.driver = driver
+        st.session_state.driver = driver
+
+        # Verificando acesso do usuario
+        with st.spinner('Verificando acesso...'):
+
+            # Verifica se o usuario tem acesso
+            if usuario_sei in df_usuarios['CPF'].values:
+                st.session_state.acesso = df_usuarios.loc[df_usuarios['CPF'] == usuario_sei]['ACESSO'].values
+                pass
+            else:
+                st.error('O usuário não tem acesso.')
+                return
 
         with st.spinner('Entrando no SEI...'):
-
             
             # tempos para execucao
             tempo_curto = 0.5
@@ -75,8 +85,8 @@ def login_sei(usuario_sei, senha_sei, orgao_sei):
             driver.find_element("xpath", '//*[@id="selOrgao"]').send_keys(orgao_sei)
             driver.find_element("xpath", '//*[@id="sbmLogin"]').click()
 
-        # Aguarda um pouco para possíveis popups ou respostas da página
-            time.sleep(tempo_medio)
+            # Aguarda um pouco para possíveis popups ou respostas da página
+            time.sleep(tempo_medio)        
 
             try:
                 alerta = driver.switch_to.alert

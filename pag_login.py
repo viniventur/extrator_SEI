@@ -14,7 +14,7 @@ warnings.filterwarnings('ignore')
 import base64
 import time
 
-st.set_page_config(page_title='Extrator de dados do SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/logo-ogp-favicon.png', initial_sidebar_state="collapsed")
+st.set_page_config(page_title='Extrator de dados do SEI - OGP/CGE', page_icon='src/assets/Identidade visual/OGP/logo-ogp-favicon.png', initial_sidebar_state="collapsed")
 
 # Config Layout (condicional de local ou online)
 
@@ -48,10 +48,12 @@ def main():
 
     run_sidebar()
 
+    df_usuarios = df_usuarios_cpf()
+
     # Criar um contêiner fixo no topo da página
     header = st.container()
 
-    logo_path_CGE_OGP = 'src/assets/Identidades visual/logo_CGE_OGP_transp.png'
+    logo_path_CGE_OGP = 'src/assets/Identidade visual/logo_CGE_OGP_transp.png'
     logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)
 
     with st.container():
@@ -80,7 +82,7 @@ def main():
 
     with st.container():
 
-        st.write('''
+        st.write(f'''
                  
                  :warning: Os dados de logins fornecidos não são armazenados, servindo apenas para o sistema logar no SEI e carregar as informações.                 
                  
@@ -102,7 +104,7 @@ def main():
         if orgao == lista_orgaos[0]:
             st.error(f"Informe o órgão.")
         else:
-            login_sei(usuario, senha, orgao)
+            login_sei(df_usuarios, usuario, senha, orgao)
         
 if __name__ == "__main__":
     main()

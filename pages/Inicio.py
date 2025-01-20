@@ -10,12 +10,15 @@ from utils.chrome import *
 from utils.funcoes_auxiliares import *
 from sidebar import *
 
+from utils.conn_gdriver import *
+
+
 import warnings
 warnings.filterwarnings('ignore')
 import base64
 import time
 
-st.set_page_config(page_title='Extrator de dados do SEI - OGP/CGE', page_icon='src/assets/Identidades visual/OGP/logo-ogp-favicon.png')
+st.set_page_config(page_title='Extrator de dados do SEI - OGP/CGE', page_icon='src/assets/Identidade visual/OGP/logo-ogp-favicon.png')
 
 if 'driver' not in st.session_state:
     st.error('Erro, Google Chrome não respondeu, redirecionando...')
@@ -50,7 +53,7 @@ def main():
 
     # Criar um contêiner fixo no topo da página
 
-    logo_path_CGE_OGP = 'src/assets/Identidades visual/logo_CGE_OGP_transp.png'
+    logo_path_CGE_OGP = 'src/assets/Identidade visual/logo_CGE_OGP_transp.png'
     logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)
 
     with st.container():
@@ -85,11 +88,16 @@ def main():
                  
                  ''',
                 unsafe_allow_html=True)
-        
+    
+               
     # Filtrar os módulos a partir do índice 2
     
-    modulos_filtrados = {k: v for k, v in modulos.items() if int(k) >= 2}
-    cols= st.columns(2, gap='large', vertical_alignment='center')
+    modulos_filtrados = {k: v for k, v in modulos.items() if int(k) >= 2} # modulos sem pag login e sem inicio
+    
+    n_cols = len(modulos_filtrados) if st.session_state.acesso == 'ADMIN' else len(modulos_filtrados)-1 # colunas sem admin caso usuario nao tenha acesso
+    
+    cols= st.columns(n_cols, gap='large', vertical_alignment='center')
+
     # Inicializar variável para armazenar o módulo clicado
     modulo_select = None
 
