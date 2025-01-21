@@ -206,5 +206,3 @@ def verificar_acesso_processo(processo):
 
     return True, valor_acesso
 
-
-

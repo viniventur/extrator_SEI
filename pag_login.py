@@ -48,8 +48,6 @@ def main():
 
     run_sidebar()
 
-    df_usuarios = df_usuarios_cpf()
-
     # Criar um contêiner fixo no topo da página
     header = st.container()
 
