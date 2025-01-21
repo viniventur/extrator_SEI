@@ -17,7 +17,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import time
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def lista_orgaos_login():
 
     try:

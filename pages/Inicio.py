@@ -88,14 +88,15 @@ def main():
                  
                  ''',
                 unsafe_allow_html=True)
-    
+        
                
     # Filtrar os módulos a partir do índice 2
+
     
-    modulos_filtrados = {k: v for k, v in modulos.items() if int(k) >= 2} # modulos sem pag login e sem inicio
-    
-    n_cols = len(modulos_filtrados) if st.session_state.acesso == 'ADMIN' else len(modulos_filtrados)-1 # colunas sem admin caso usuario nao tenha acesso
-    
+    modulos_filtrados = {k: v for k, v in modulos.items() if int(k) >= 2} # filtrar modulos sem pagina de login e sem o pag de inicio
+
+    n_cols = len(modulos_filtrados) if st.session_state.acesso == 'ADMIN' else len(modulos_filtrados)-1 # numero de coluna sem o administrador para usuarios sem acesso
+
     cols= st.columns(n_cols, gap='large', vertical_alignment='center')
 
     # Inicializar variável para armazenar o módulo clicado

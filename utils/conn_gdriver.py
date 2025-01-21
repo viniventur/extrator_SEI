@@ -60,7 +60,7 @@ def download_file_from_drive(file_id):
     except Exception as e:
         st.error(f'Erro: {e}')
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def df_usuarios_cpf():
     try:
         df = pd.read_csv(download_file_from_drive(secrets['google_credentials']['AUTORIZACAO_CPF_ID']), dtype=str)
