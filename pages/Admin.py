@@ -9,6 +9,7 @@ from utils.login import *
 from utils.chrome import *
 from utils.funcoes_auxiliares import *
 from sidebar import *
+from utils.conn_gdriver import *
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -58,67 +59,130 @@ def main():
     logo_path_CGE_OGP = 'src/assets/Identidade visual/logo_CGE_OGP_transp.png'
     logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)
 
-    with st.container():
-        # Centralizando as imagens lado a lado
-        st.markdown(
-            f"""
-            <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
-                <img src="data:image/png;base64,{logo_base64_CGE_OGP}" style="margin-right: 0px; width: 550px;">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    # Centralizando as imagens lado a lado
+    st.markdown(
+        f"""
+        <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
+            <img src="data:image/png;base64,{logo_base64_CGE_OGP}" style="margin-right: 0px; width: 550px;">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    with st.container():
+    st.markdown("<h1 style='text-align: center; font-size: 40px;'>Configuração de Usuários e Acessos</h1>", unsafe_allow_html=True)
 
-        st.markdown(f'''
-                 
-                 <div style="display: flex; justify-content: center; align-items: center; height: 70px; text-align: bottom;">
-                <h1 style="font-size: 35px; margin: 0;">Extrator de Dados do SEI</h1>
-                 </div>        
-                 
-                 ''',
-                unsafe_allow_html=True)
-        
-    with st.container():
+    if 'reload_data' not in st.session_state:
+     st.session_state['reload_data'] = False
 
-        st.markdown(f'''
-                 
-                 <div style="display: flex; justify-content: center; align-items: center; height: 100px; text-align: center;">
-                <h1 style="font-size: 30px; margin: 0;">Configuração de Acessos</h1>
-                 </div>        
-                 
-                 ''',
-                unsafe_allow_html=True)
+    cols = st.columns(3)
     
-        dados_usuarios = obter_dados_usuarios()
+    with cols[0]:
+        # botao de edicao da base de usuarios
+        if st.button(':material/add: Adicionar', use_container_width=True):
+            add_user()
 
-    st.dataframe(dados_usuarios)
+    with cols[1]:
+        # botao de edicao da base de usuarios
+        if st.button(':material/edit: Alterar', use_container_width=True):
+            edit_user()
 
-    if st.button('atualizar'): 
+    with cols[2]:
+        # botao de edicao da base de usuarios
+        if st.button(':material/delete: Excluir', use_container_width=True):
+            excluir_user()
 
-        st.cache_data.clear()
+
+    if st.button(':material/refresh: Atualizar', use_container_width=True):
+        st.session_state['reload_data'] = True
+        st.cache_data.clear()  # Limpa o cache da função
         st.rerun()
 
+    # Carregar os dados
+    if st.session_state['reload_data']:
+        df_usuarios = df_usuarios_cpf()  # Recarrega os dados
+        st.session_state['reload_data'] = False
+    else:
+        df_usuarios = df_usuarios_cpf()  # Usa o cache, se não for recarregar
+
+    st.dataframe(df_usuarios, use_container_width=True, hide_index=True)
+
+# =================================================================
+# PAGINAS DE DIALOGOS (MODAL) DE ADD, EDICAO E EXCLUSAO DE USUARIOS
+# =================================================================
+
+@st.dialog("Edição de Usuários")
+def add_user():
+    st.markdown("<h1 style='text-align: center; font-size: 20px;'>Adicionar Usuários</h1>", unsafe_allow_html=True)
+    
     # Input para o usuário
     cpf = st.text_input('CPF:')
 
-    # TRATAR INPUT
+    # tratar cpf
 
-    # Input para a senha (caracteres ocultos)
-    acesso = st.selectbox('Acesso', ['USUARIO', 'ADMIN'])
+@st.dialog("Edição de Usuários")
+def edit_user():
+    st.markdown("<h1 style='text-align: center; font-size: 20px;'>Alterar Usuários</h1>", unsafe_allow_html=True)
+    
+    # editar cpf ou acesso? 
 
-    if st.button('Adicionar usuario'):
+    acesso = st.selectbox('Acesso', ['USUARIO', 'ADMIN']) #colocar no dataframe
 
-        novo = {'CPF': str(cpf), 'ACESSO': acesso}
+@st.dialog("Edição de Usuários")
+def excluir_user():
+    st.markdown("<h1 style='text-align: center; font-size: 20px;'>Excluir Usuários</h1>", unsafe_allow_html=True)
+    
+    # selecao por CPF
 
-        dados_usuarios.loc[len(dados_usuarios)] = novo
 
-        alterar_dados_usuario(dados_usuarios)
 
-        st.cache_data.clear()
-        st.rerun()
+# @st.dialog("Edição de Usuários")
+# def pag_edit():
+    
+#     # Input para o usuário
+#     cpf = st.text_input('CPF:')
+
+#     # TRATAR INPUT
+
+#     # Input para a senha (caracteres ocultos)
+#     acesso = st.selectbox('Acesso', ['USUARIO', 'ADMIN'])
+
+#     # if st.button('Adicionar usuario'):
+
+#     #     novo = {'CPF': str(cpf), 'ACESSO': acesso}
+
+#     #     dados_usuarios.loc[len(dados_usuarios)] = novo
+
+#     #     alterar_dados_usuario(dados_usuarios)
+
+
+#     if st.button('UPAR'):
+#         #upload_and_replace_file_drive('cpf_autorizados_extrator_sei2', df_mod, secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
+#         st.session_state['reload_data'] = True
+
+
 
 
 if __name__ == "__main__":
     main()
+
+# exemplo de df
+
+# data_df = pd.DataFrame(
+#     {
+#         "widgets": ["st.selectbox", "st.number_input", "st.text_area", "st.button"],
+#     }
+# )
+
+# st.data_editor(
+#     data_df,
+#     column_config={
+#         "widgets": st.column_config.Column(
+#             "Streamlit Widgets",
+#             help="Streamlit **widget** commands 🎈",
+#             width="medium",
+#             required=True,
+#         )
+#     },
+#     hide_index=True,
+#     num_rows="dynamic",
+# )
