@@ -102,6 +102,7 @@ def main():
         if orgao == lista_orgaos[0]:
             st.error(f"Informe o órgão.")
         else:
+            df_usuarios = df_usuarios_cpf()
             login_sei(df_usuarios, usuario, senha, orgao)
         
 if __name__ == "__main__":

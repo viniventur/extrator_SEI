@@ -34,17 +34,17 @@ def run_sidebar():
                 st.sidebar.divider()
 
                 # NAVEGACAO
-
-                # ADMIN
-                st.sidebar.page_link(modulos[4][1],
-                        label=modulos[4][0],
-                        icon=modulos[4][2])
                 
                 # INICIO
                 st.sidebar.page_link(modulos[1][1],
                         label=modulos[1][0],
                         icon=modulos[1][2])
                 
+                # ADMIN
+                st.sidebar.page_link(modulos[4][1],
+                        label=modulos[4][0],
+                        icon=modulos[4][2])
+
                 # ANDAMENTO DE PROCESSO
                 st.sidebar.page_link(modulos[2][1],
                                         label=modulos[2][0],
