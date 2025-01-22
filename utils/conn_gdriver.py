@@ -107,8 +107,6 @@ def download_file_by_name(file_name, folder_id=None):
         st.error(f'Erro: {e}')
         return None
 
-
-@st.cache_data(show_spinner=False)
 def df_usuarios_cpf():
     try:
         #df = pd.read_csv(download_file_from_drive_id(secrets['google_credentials']['AUTORIZACAO_CPF_ID']), dtype=str)
