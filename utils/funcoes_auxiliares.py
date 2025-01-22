@@ -9,7 +9,9 @@ import base64
 import time
 env = dotenv_values('.env')
 
+
 # modulos
+@st.cache_data(show_spinner=False)
 def modulos():
     '''
         Retorna um dicionário com informações sobre os módulos disponiveis no sistema.
@@ -205,4 +207,32 @@ def verificar_acesso_processo(processo):
     valor_acesso = 'Acesso liberado'
 
     return True, valor_acesso
+  
+def validacao_cpf(cpf):
+
+    # Retira apenas os dígitos do CPF, ignorando os caracteres especiais
+    numeros = [int(digito) for digito in cpf if digito.isdigit()]
+
+    validacao1 = False
+    validacao2 = False
+
+    soma_produtos = sum(a*b for a, b in zip (numeros[0:9], range (10, 1, -1)))
+    digito_esperado = (soma_produtos * 10 % 11) % 10
+  
+    if numeros[9] == digito_esperado:
+        validacao1 = True
+
+    soma_produtos1 = sum(a*b for a, b in zip(numeros [0:10], range (11, 1, -1)))
+    digito_esperado1 = (soma_produtos1 *10 % 11) % 10
+
+    if numeros[10] == digito_esperado1:
+        validacao2 = True
+        
+    if  validacao1 == True and validacao2 == True:
+        return True
+    else:
+        return False
+
+
+
 

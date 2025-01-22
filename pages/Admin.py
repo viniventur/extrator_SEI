@@ -73,6 +73,11 @@ def main():
 
     if 'reload_data' not in st.session_state:
      st.session_state['reload_data'] = False
+    elif st.session_state['reload_data'] == True:
+        st.session_state['reload_data'] = False
+        st.cache_data.clear()  # Limpa o cache da função
+        st.rerun()
+     
 
     cols = st.columns(3)
     
@@ -110,79 +115,109 @@ def main():
 # PAGINAS DE DIALOGOS (MODAL) DE ADD, EDICAO E EXCLUSAO DE USUARIOS
 # =================================================================
 
-@st.dialog("Edição de Usuários")
+@st.dialog("Adicionar Usuários")
 def add_user():
-    st.markdown("<h1 style='text-align: center; font-size: 20px;'>Adicionar Usuários</h1>", unsafe_allow_html=True)
+
+    st.markdown("<h1 style='text-align: center; font-size: 20px;'>Insira os Dados:</h1>", unsafe_allow_html=True)
     
-    # Input para o usuário
-    cpf = st.text_input('CPF:')
+    acessos = ['USUARIO', 'ADMIN']
 
-    # tratar cpf
+    df_add_users = pd.DataFrame(pd.DataFrame({
+                                                "CPF": ["Insira o CPF"],  # Exemplo de CPF formatado
+                                                "ACESSO": ['USUARIO']             # Indicando se é admin ou não
+                                            })
 
-@st.dialog("Edição de Usuários")
+                                )
+
+    add_df = st.data_editor(df_add_users,
+                            column_config={
+                                        "ACESSO": st.column_config.SelectboxColumn(
+                                        "ACESSO",
+                                        width="medium",
+                                        options=acessos,
+                                        default='USUARIO',
+                                        required=True
+                                        ),
+                                        "CPF": st.column_config.TextColumn(
+                                            "CPF",
+                                            max_chars=11,
+                                            validate=r"^\d{11}$",
+                                            default='Insira o CPF'
+                                        ) 
+                            },
+                             hide_index=True,
+                             use_container_width=True,
+                             num_rows='dynamic'
+                            )
+
+    if st.button(':material/add: Adicionar Usuários', use_container_width=True):
+
+        with st.spinner('Adicionando usuários...'):
+
+            # ========================
+            # TRATAMENTO DE DADOS
+            # ========================
+
+            # Tratamento dos default e Verificar se foi inserido algo
+            add_df = add_df[add_df["CPF"] != "Insira o CPF"]
+
+            if len(add_df) < 1:
+                st.error('Insira dados para adicionar usuários.')
+                return
+            
+            # Validação de CPF
+            add_df["CPF_VALIDACAO"] = add_df["CPF"].apply(validacao_cpf)
+            qnt_INVALIDOS = len(add_df.loc[add_df['CPF_VALIDACAO'] == False])
+            if qnt_INVALIDOS > 0:
+                st.error('Os dados contém CPFs inválidos:')
+                st.dataframe(add_df.loc[add_df['CPF_VALIDACAO'] == False][['CPF', 'ACESSO']],
+                            use_container_width=True,
+                            hide_index=True
+                            )
+                return
+
+            
+            # Verificar Duplicidade entre si
+            add_df['CONCAT_VERIFICACAO'] = add_df['CPF'] + add_df['ACESSO']
+            if len(add_df) > 1 and not add_df[["CONCAT_VERIFICACAO"]].duplicated().any():
+                st.error('CPF duplicados com acessos diferentes:')
+                st.dataframe(add_df.drop_duplicates(subset=['CONCAT_VERIFICACAO'], keep=False)[['CPF', 'ACESSO']],
+                            use_container_width=True,
+                            hide_index=True
+                            )              
+                return
+
+            # Verificar Duplicidade na base de dados
+            elif add_df["CPF"].isin(df_usuarios["CPF"]).any():
+                st.error("Os CPFs abaixo já constam na base!")
+                st.dataframe(add_df.loc[add_df["CPF"].isin(df_usuarios["CPF"])][['CPF', 'ACESSO']],
+                    use_container_width=True,
+                    hide_index=True
+                    )
+                return     
+
+            add_df = add_df.drop_duplicates(subset=['CONCAT_VERIFICACAO'])[['CPF', 'ACESSO']]
+
+            # Adicionando
+            df_adicionado = pd.concat([df_usuarios, add_df], axis=0, ignore_index=True)
+
+            upload_and_replace_file_drive('cpf_autorizados_extrator_sei2', df_adicionado, secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
+            st.session_state['reload_data'] = True
+            st.rerun()
+
+
+@st.dialog("Alterar Usuários")
 def edit_user():
     st.markdown("<h1 style='text-align: center; font-size: 20px;'>Alterar Usuários</h1>", unsafe_allow_html=True)
     
-    # editar cpf ou acesso? 
+    # escolher por cpf e editar a linha toda
 
-    acesso = st.selectbox('Acesso', ['USUARIO', 'ADMIN']) #colocar no dataframe
-
-@st.dialog("Edição de Usuários")
+@st.dialog("Excluir Usuários")
 def excluir_user():
     st.markdown("<h1 style='text-align: center; font-size: 20px;'>Excluir Usuários</h1>", unsafe_allow_html=True)
     
     # selecao por CPF
 
 
-
-# @st.dialog("Edição de Usuários")
-# def pag_edit():
-    
-#     # Input para o usuário
-#     cpf = st.text_input('CPF:')
-
-#     # TRATAR INPUT
-
-#     # Input para a senha (caracteres ocultos)
-#     acesso = st.selectbox('Acesso', ['USUARIO', 'ADMIN'])
-
-#     # if st.button('Adicionar usuario'):
-
-#     #     novo = {'CPF': str(cpf), 'ACESSO': acesso}
-
-#     #     dados_usuarios.loc[len(dados_usuarios)] = novo
-
-#     #     alterar_dados_usuario(dados_usuarios)
-
-
-#     if st.button('UPAR'):
-#         #upload_and_replace_file_drive('cpf_autorizados_extrator_sei2', df_mod, secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
-#         st.session_state['reload_data'] = True
-
-
-
-
 if __name__ == "__main__":
     main()
-
-# exemplo de df
-
-# data_df = pd.DataFrame(
-#     {
-#         "widgets": ["st.selectbox", "st.number_input", "st.text_area", "st.button"],
-#     }
-# )
-
-# st.data_editor(
-#     data_df,
-#     column_config={
-#         "widgets": st.column_config.Column(
-#             "Streamlit Widgets",
-#             help="Streamlit **widget** commands 🎈",
-#             width="medium",
-#             required=True,
-#         )
-#     },
-#     hide_index=True,
-#     num_rows="dynamic",
-# )
