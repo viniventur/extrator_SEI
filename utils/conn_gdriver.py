@@ -112,7 +112,7 @@ def download_file_by_name(file_name, folder_id=None):
 def df_usuarios_cpf():
     try:
         #df = pd.read_csv(download_file_from_drive_id(secrets['google_credentials']['AUTORIZACAO_CPF_ID']), dtype=str)
-        df = pd.read_csv(download_file_by_name('cpf_autorizados_extrator_sei2'), dtype=str)
+        df = pd.read_csv(download_file_by_name('cpf_autorizados_extrator_sei'), dtype=str)
         return df
     except Exception as e:
         st.error(f'Erro ao obter acesso: {e}')
