@@ -45,6 +45,7 @@ st.markdown(hide_style, unsafe_allow_html=True)
 def main():
 
     st.session_state.pag = 'login'
+    st.session_state.acesso = ''
 
     run_sidebar()
 
