@@ -202,7 +202,7 @@ def add_user():
             df_adicionado = pd.concat([df_usuarios, add_df], axis=0, ignore_index=True)
 
             upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_adicionado, secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
-            st.session_state['reload_data'] = True
+            df_usuarios = df_usuarios_cpf()
             st.rerun()
 
 
