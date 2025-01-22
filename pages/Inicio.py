@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import streamlit as st
+from streamlit_option_menu import option_menu
 from utils.conn_gsheets import *
 from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
@@ -56,58 +57,58 @@ def main():
     logo_path_CGE_OGP = 'src/assets/Identidade visual/logo_CGE_OGP_transp.png'
     logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)
 
-    with st.container():
-        # Centralizando as imagens lado a lado
-        st.markdown(
-            f"""
-            <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
-                <img src="data:image/png;base64,{logo_base64_CGE_OGP}" style="margin-right: 0px; width: 550px;">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    # Centralizando as imagens lado a lado
+    st.markdown(
+        f"""
+        <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
+            <img src="data:image/png;base64,{logo_base64_CGE_OGP}" style="margin-right: 0px; width: 550px;">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    with st.container():
-
-        st.markdown(f'''
-                 
-                 <div style="display: flex; justify-content: center; align-items: center; height: 70px; text-align: bottom;">
-                <h1 style="font-size: 35px; margin: 0;">Extrator de Dados do SEI</h1>
-                 </div>        
-                 
-                 ''',
-                unsafe_allow_html=True)
-        
-    with st.container():
-
-        st.markdown(f'''
-                 
-                 <div style="display: flex; justify-content: center; align-items: center; height: 100px; text-align: center;">
-                <h1 style="font-size: 30px; margin: 0;">Olá, {st.session_state.nome_usuario}! O que deseja acessar?</h1>
-                 </div>        
-                 
-                 ''',
-                unsafe_allow_html=True)
+    st.markdown(f'''
+                <div style="display: flex; justify-content: center; align-items: center; height: 100px; text-align: justify;">
+                    <h1 style="font-size: 35px; margin: 0;">Extrator de Dados do SEI</h1>
+                </div>        
+                ''',
+            unsafe_allow_html=True)
         
     # Filtrar os módulos a partir do índice 2   
-    modulos_filtrados = {k: v for k, v in modulos.items() if int(k) >= 2} # filtrar modulos sem pagina de login e sem o pag de inicio
+    modulos_filtrados = {k: v for k, v in modulos.items() if int(k) >= 1} # filtrar modulos sem pagina de login
 
-    n_cols = len(modulos_filtrados) if st.session_state.acesso == 'ADMIN' else len(modulos_filtrados)-1 # numero de coluna sem o administrador para usuarios sem acesso
+    # Variáveis para armazenar os valores
+    nome_modulos = []
+    links_modulos = []
+    nome_links = []
 
-    cols= st.columns(n_cols, gap='large', vertical_alignment='center')
 
-    # Inicializar variável para armazenar o módulo clicado
-    modulo_select = None
+    # Iterando sobre o dicionário
+    for key, values in modulos_filtrados.items():
+        nome_modulos.append(values[0])   # Nome do módulo
+        links_modulos.append(values[1]) # Link do módulo
+        # icones_modulos.append(values[2]) # Ícone do módulo
+        nome_links.append([nome_modulos, links_modulos])
 
-    for i, modulo in modulos_filtrados.items():
-        with cols[i-2]:  # Posicionar o botão na coluna correspondente (-2 excluindo login e inicio)
-            #st.write(modulo[0])
-            if st.button(f'{modulo[2]} {modulo[0]}', use_container_width=True, key=f'botao-{modulo[0]}', help='Clique para mudar de página'):  # Nome do módulo como rótulo do botão
-                modulo_select = modulo[1]
+    icones_modulos = ['compass', 'equals', 'shield']
 
-    if modulo_select:
-        with st.spinner('Redirecionando...'):
-            st.switch_page(modulo_select)
-        
+    modulo_selecionado = option_menu(
+        menu_title=f'Olá, {st.session_state.nome_usuario}! O que deseja acessar?',
+        options=nome_modulos,
+        menu_icon="menu-app",
+        orientation='vertical',
+        default_index=0
+    ) # option_menu nao suporta icones sem ser do bootstrap
+
+
+    # Identificando o módulo selecionado
+    if modulo_selecionado:
+        # Obtém o índice da seleção para localizar o link correto
+        modulo_index = nome_modulos.index(modulo_selecionado)
+        link_selecionado = links_modulos[modulo_index]
+                
+    with st.spinner("Redirecionando..."):
+        st.switch_page(link_selecionado)
+    
 if __name__ == "__main__":
     main()

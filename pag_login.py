@@ -54,27 +54,23 @@ def main():
     logo_path_CGE_OGP = 'src/assets/Identidade visual/logo_CGE_OGP_transp.png'
     logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)
 
-    with st.container():
-        # Centralizando as imagens lado a lado
-        st.markdown(
-            f"""
-            <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
-                <img src="data:image/png;base64,{logo_base64_CGE_OGP}" style="margin-right: 0px; width: 550px;">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    st.markdown(
+        f"""
+        <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
+            <img src="data:image/png;base64,{logo_base64_CGE_OGP}" style="margin-right: 0px; width: 550px;">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    with st.container():
-        # Centralizando o texto no meio da tela
-        st.markdown(
-            f"""
-            <div style="display: flex; justify-content: center; align-items: center; height: 100px; text-align: center;">
-                <h1 style="font-size: 35px; margin: 0;">Extrator de Dados do SEI</h1>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    st.markdown(
+        f"""
+        <div style="display: flex; justify-content: center; align-items: center; height: 100px; text-align: center;">
+            <h1 style="font-size: 35px; margin: 0;">Extrator de Dados do SEI</h1>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 ### Olá! Bem vindo extrator de dados do SEI
 

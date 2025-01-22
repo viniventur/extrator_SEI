@@ -39,11 +39,6 @@ def run_sidebar():
                 st.sidebar.page_link(modulos[1][1],
                         label=modulos[1][0],
                         icon=modulos[1][2])
-                
-                # ADMIN
-                st.sidebar.page_link(modulos[4][1],
-                        label=modulos[4][0],
-                        icon=modulos[4][2])
 
                 # ANDAMENTO DE PROCESSO
                 st.sidebar.page_link(modulos[2][1],
@@ -54,6 +49,11 @@ def run_sidebar():
                 st.sidebar.page_link(modulos[3][1],
                                     label=modulos[3][0],
                                     icon=modulos[3][2])
+                
+                # ADMIN
+                st.sidebar.page_link(modulos[4][1],
+                        label=modulos[4][0],
+                        icon=modulos[4][2])
 
                 st.divider()
 

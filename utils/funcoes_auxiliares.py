@@ -28,7 +28,7 @@ def modulos():
         0: ['Login', 'pag_login.py'],
         1: ['Início', 'pages/Inicio.py', ':material/home:'],
         2: ['Andamento de Processos', 'pages/Andamento de processos.py', ':material/explore:'],
-        3: ['Contagem de Documentos', 'pages/Contagem de documentos.py', ':material/functions:'],
+        3: ['Contagem de Documentos', 'pages/Contagem de documentos.py', ':material/equal:'],
         4: ['Administração', 'pages/Admin.py', ':material/admin_panel_settings:']
     }
     return modulos

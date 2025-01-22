@@ -64,19 +64,16 @@ def main():
     logo_path_CGE_OGP = 'src/assets/Identidade visual/logo_CGE_OGP_transp.png'
     logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)
 
-    with st.container():
-        # Centralizando as imagens lado a lado
-        st.markdown(
-            f"""
-            <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
-                <img src="data:image/png;base64,{logo_base64_CGE_OGP}" style="margin-right: 0px; width: 550px;">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    st.markdown(
+        f"""
+        <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
+            <img src="data:image/png;base64,{logo_base64_CGE_OGP}" style="margin-right: 0px; width: 550px;">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    with st.container():
-        st.markdown("<h1 style='text-align: center;'>Contagem de Documentos</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>Contagem de Documentos</h1>", unsafe_allow_html=True)
 
     # Dividindo os botões em duas colunas
     col1, col2 = st.columns([1, 1])
