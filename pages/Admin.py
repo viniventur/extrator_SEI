@@ -240,7 +240,36 @@ def edit_user():
 def excluir_user():
     st.markdown("<h1 style='text-align: center; font-size: 20px;'>Excluir Usuários</h1>", unsafe_allow_html=True)
     
-    # selecao por CPF
+    df_usuarios = df_usuarios_cpf()
+    df_usuarios_select = df_usuarios['CPF'].tolist()
+    df_usuarios_select.insert(0, " ")
+    cpf_selecionado = st.selectbox("Selecione o CPF do usuário para alterar:", df_usuarios_select, placeholder='Selecione um CPF')
+
+    if cpf_selecionado != " ":
+
+        st.write('Confira os dados a serem excluídos:')
+
+        df_cpf_select = df_usuarios.loc[df_usuarios['CPF'] == cpf_selecionado] # df do cpf selecionado
+
+        st.dataframe(df_cpf_select,
+                        use_container_width=True,
+                        hide_index=True
+                    )
+
+        if st.button(':material/delete: Editar Usuários', use_container_width=True):
+
+            with st.spinner('Excluindo usuário...'):
+                try:
+                    df_usuarios = df_usuarios_cpf()
+                    
+                    # Modificando o df original
+                    df_usuarios = df_usuarios.loc[df_usuarios['CPF'] != cpf_selecionado]
+
+                    upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
+                    st.success("Usuário editado com sucesso!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f'Erro ao excluir os dados: {e}')
 
 if __name__ == "__main__":
     main()
