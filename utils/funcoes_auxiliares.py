@@ -53,6 +53,7 @@ def sair():
     with st.spinner('Redirecionando...'):
         excluir_driver()
         st.cache_resource.clear()
+        st.cache_data.clear()
         st.switch_page(modulos[0][1])
 
 def voltar_inicio():

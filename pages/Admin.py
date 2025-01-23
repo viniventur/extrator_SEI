@@ -256,7 +256,7 @@ def excluir_user():
                         hide_index=True
                     )
 
-        if st.button(':material/delete: Editar Usuários', use_container_width=True):
+        if st.button(':material/delete: Excluir Usuários', use_container_width=True):
 
             with st.spinner('Excluindo usuário...'):
                 try:
