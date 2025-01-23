@@ -154,56 +154,62 @@ def add_user():
 
         with st.spinner('Adicionando usuários...'):
 
-            # ========================
-            # TRATAMENTO DE DADOS
-            # ========================
+            try:
+                # ========================
+                # TRATAMENTO DE DADOS
+                # ========================
 
-            # Tratamento dos default e Verificar se foi inserido algo
-            add_df = add_df[add_df["CPF"] != "Insira o CPF"]
+                # Tratamento dos default e Verificar se foi inserido algo
+                add_df = add_df[add_df["CPF"] != "Insira o CPF"]
 
-            if len(add_df) < 1:
-                st.error('Insira dados para adicionar usuários.')
+                if len(add_df) < 1:
+                    st.error('Insira dados para adicionar usuários.')
+                    return
+                
+                # Validação de CPF
+                add_df["CPF_VALIDACAO"] = add_df["CPF"].apply(validacao_cpf)
+
+                qnt_INVALIDOS = len(add_df.loc[add_df['CPF_VALIDACAO'] == False])
+                if qnt_INVALIDOS > 0:
+                    st.error('Os dados contém CPFs inválidos:')
+                    st.dataframe(add_df.loc[add_df['CPF_VALIDACAO'] == False][['CPF', 'ACESSO']],
+                                use_container_width=True,
+                                hide_index=True
+                                )
+                    return
+                
+                # Verifica duplicados com acessos diferentes
+                duplicados_diferentes = add_df.groupby('CPF')['ACESSO'].nunique()
+                cpf_diferentes = duplicados_diferentes[duplicados_diferentes > 1].index
+
+                if not cpf_diferentes.empty:
+                    st.error('CPF duplicados com acessos diferentes:')
+                    st.dataframe(add_df[add_df['CPF'].isin(cpf_diferentes)][['CPF', 'ACESSO']].sort_values(by='CPF'),
+                                use_container_width=True,
+                                hide_index=True
+                                )              
+
+                # Verificar Duplicidade na base de dados
+                df_usuarios = df_usuarios_cpf()
+                if add_df["CPF"].isin(df_usuarios["CPF"]).any():
+                    st.error("Os CPFs abaixo já constam na base.")
+                    st.dataframe(add_df.loc[add_df["CPF"].isin(df_usuarios["CPF"])][['CPF', 'ACESSO']],
+                        use_container_width=True,
+                        hide_index=True
+                        )
+                    return     
+
+                add_df = add_df.drop_duplicates(subset=['CPF'])[['CPF', 'ACESSO']]
+
+                # Adicionando
+                df_adicionado = pd.concat([df_usuarios, add_df], axis=0, ignore_index=True)
+                upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_adicionado, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
+                df_usuarios = df_usuarios_cpf()
+                time.sleep(1)
+                st.rerun()
+            except Exception as e:
+                st.error(f'Erro ao atualizar dados: {e}')
                 return
-            
-            # Validação de CPF
-            add_df["CPF_VALIDACAO"] = add_df["CPF"].apply(validacao_cpf)
-            qnt_INVALIDOS = len(add_df.loc[add_df['CPF_VALIDACAO'] == False])
-            if qnt_INVALIDOS > 0:
-                st.error('Os dados contém CPFs inválidos:')
-                st.dataframe(add_df.loc[add_df['CPF_VALIDACAO'] == False][['CPF', 'ACESSO']],
-                            use_container_width=True,
-                            hide_index=True
-                            )
-                return
-
-            
-            # Verificar Duplicidade entre si
-            add_df['CONCAT_VERIFICACAO'] = add_df['CPF'] + add_df['ACESSO']
-            if len(add_df) > 1 and not add_df[["CONCAT_VERIFICACAO"]].duplicated().any():
-                st.error('CPF duplicados com acessos diferentes:')
-                st.dataframe(add_df.drop_duplicates(subset=['CONCAT_VERIFICACAO'], keep=False)[['CPF', 'ACESSO']],
-                            use_container_width=True,
-                            hide_index=True
-                            )              
-                return
-
-            # Verificar Duplicidade na base de dados
-            elif add_df["CPF"].isin(df_usuarios["CPF"]).any():
-                st.error("Os CPFs abaixo já constam na base!")
-                st.dataframe(add_df.loc[add_df["CPF"].isin(df_usuarios["CPF"])][['CPF', 'ACESSO']],
-                    use_container_width=True,
-                    hide_index=True
-                    )
-                return     
-
-            add_df = add_df.drop_duplicates(subset=['CONCAT_VERIFICACAO'])[['CPF', 'ACESSO']]
-
-            # Adicionando
-            df_adicionado = pd.concat([df_usuarios, add_df], axis=0, ignore_index=True)
-
-            upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_adicionado, secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
-            df_usuarios = df_usuarios_cpf()
-            st.rerun()
 
 
 @st.dialog("Alterar Usuários")

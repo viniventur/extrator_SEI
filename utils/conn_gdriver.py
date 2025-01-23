@@ -34,17 +34,18 @@ def get_drive_service():
     # Usar from_service_account_info para passar o dicionário em vez de um arquivo
     credentials = service_account.Credentials.from_service_account_info(
         credentials_info,
-        scopes=['https://www.googleapis.com/auth/drive']
+        scopes=['https://www.googleapis.com/auth/drive',
+                'https://www.googleapis.com/auth/drive.file'
+                ]
     )
 
     return build('drive', 'v3', credentials=credentials)
 
-g_service = get_drive_service()
-
+service = get_drive_service()
 
 def list_login_files():
     LOGIN_FOLDER_ID = secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID']  # Adicionar o ID da pasta de login no .env
-    login_files = g_service.files().list(
+    login_files = service.files().list(
         q=f"'{LOGIN_FOLDER_ID}' in parents and name contains '.csv'",
         fields="files(id, name)",
         orderBy='createdTime desc'
@@ -58,11 +59,77 @@ def list_login_files():
 # Função para baixar arquivos do Google Drive pelo ID
 def download_file_from_drive_id(file_id):
     try:
-        request = g_service.files().get_media(fileId=file_id)
+        request = service.files().get_media(fileId=file_id)
         response = request.execute()
         return BytesIO(response)
     except Exception as e:
-        st.error(f'Erro: {e}')
+        st.error(f'Erro ao baixar pasta: {e}')
+
+# Criar pastas
+def criar_pasta(name, parent_id=None):
+    """
+    Cria uma pasta no Google Drive.
+    
+    Args:
+        service: Instância autenticada da API do Google Drive.
+        name (str): Nome da pasta a ser criada.
+        parent_id (str): ID da pasta pai (opcional).
+
+    Returns:
+        str: ID da pasta criada.
+    """
+
+    try:
+
+        folder_metadata = {
+            'name': name,
+            'mimeType': 'application/vnd.google-apps.folder',
+        }
+        if parent_id:
+            folder_metadata['parents'] = [parent_id]
+
+        service.files().create(body=folder_metadata, fields='id').execute()
+    except Exception as e:
+        st.error(f'Erro ao baixar pasta: {e}')
+
+# Enviar arquivos
+def upload_csv(file_name, file_content_df, parent_id=None):
+    """
+    Faz o upload de um arquivo CSV para o Google Drive.
+    
+    Args:
+        service: Instância autenticada da API do Google Drive.
+        file_path (str): Caminho completo do arquivo local.
+        file_name (str): Nome que o arquivo terá no Google Drive.
+        parent_id (str): ID da pasta onde o arquivo será armazenado (opcional).
+    
+    Returns:
+        str: ID do arquivo enviado.
+    """
+    try:
+        file_metadata = {
+            'name': file_name,
+            'mimeType': 'text/csv',
+        }
+        if parent_id:
+            file_metadata['parents'] = [parent_id]
+
+                # Converter o DataFrame para CSV
+        csv_buffer = BytesIO()
+        file_content_df.to_csv(csv_buffer, index=False, encoding='utf-8')
+        csv_buffer.seek(0)
+
+        # Fazer o upload do novo arquivo
+        media = MediaIoBaseUpload(csv_buffer, mimetype='text/csv')
+        uploaded_file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id, name'
+        ).execute()
+
+    except Exception as e:
+        st.error(f'Erro ao criar arquivo: {e}')        
+
 
 # Função para baixar arquivos do Google Drive pelo NOME
 def download_file_by_name(file_name, folder_id=None):
@@ -83,7 +150,7 @@ def download_file_by_name(file_name, folder_id=None):
             query += f" and '{folder_id}' in parents"
         
         # Busca o arquivo pelo nome
-        results = g_service.files().list(
+        results = service.files().list(
             q=query,
             spaces='drive',
             fields='files(id, name)',
@@ -99,7 +166,7 @@ def download_file_by_name(file_name, folder_id=None):
         file_id = files[0]['id']
         
         # Faz o download do arquivo
-        request = g_service.files().get_media(fileId=file_id)
+        request = service.files().get_media(fileId=file_id)
         response = request.execute()
         return BytesIO(response)
     
@@ -107,15 +174,14 @@ def download_file_by_name(file_name, folder_id=None):
         st.error(f'Erro: {e}')
         return None
 
+@st.cache_data(show_spinner=False)
 def df_usuarios_cpf():
     try:
         #df = pd.read_csv(download_file_from_drive_id(secrets['google_credentials']['AUTORIZACAO_CPF_ID']), dtype=str)
-        df = pd.read_csv(download_file_by_name('cpf_autorizados_extrator_sei'), dtype=str)
+        df = pd.read_csv(download_file_by_name('cpf_autorizados_extrator_sei', folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID']), dtype=str)
         return df
     except Exception as e:
         st.error(f'Erro ao obter acesso: {e}')
-
-df_usuarios = df_usuarios_cpf()
 
 # recarregar df de usuarios
 def recarregar_usuarios():
@@ -142,7 +208,7 @@ def upload_and_replace_file_drive(file_name, file_content_df, folder_id):
     try:
         # Buscar por arquivos com o mesmo nome na pasta
         query = f"name = '{file_name}' and '{folder_id}' in parents"
-        results = g_service.files().list(
+        results = service.files().list(
             q=query,
             spaces='drive',
             fields='files(id, name)',
@@ -153,7 +219,7 @@ def upload_and_replace_file_drive(file_name, file_content_df, folder_id):
         if files:
             # Se o arquivo existir, apagar o antigo
             file_id = files[0]['id']
-            g_service.files().delete(fileId=file_id).execute()
+            service.files().delete(fileId=file_id).execute()
         
         # Converter o DataFrame para CSV
         csv_buffer = BytesIO()
@@ -168,7 +234,7 @@ def upload_and_replace_file_drive(file_name, file_content_df, folder_id):
 
         # Fazer o upload do novo arquivo
         media = MediaIoBaseUpload(csv_buffer, mimetype='text/csv')
-        uploaded_file = g_service.files().create(
+        uploaded_file = service.files().create(
             body=file_metadata,
             media_body=media,
             fields='id, name'
@@ -179,3 +245,5 @@ def upload_and_replace_file_drive(file_name, file_content_df, folder_id):
     except Exception as e:
         st.error(f'Erro ao fazer upload: {e}')
         return None
+
+
