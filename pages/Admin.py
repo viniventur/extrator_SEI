@@ -171,15 +171,76 @@ def add_user():
             except Exception as e:
                 st.error(f'Erro ao atualizar dados: {e}')
 
+############################################
+
 @st.dialog("Alterar Usuários")
 def edit_user():
-    st.markdown("<h1 style='text-align: center; font-size: 20px;'>Alterar Usuários</h1>", unsafe_allow_html=True)
-    # Implementação futura
+
+    df_usuarios = df_usuarios_cpf()
+    df_usuarios_select = df_usuarios['CPF'].tolist()
+    df_usuarios_select.insert(0, " ")
+    cpf_selecionado = st.selectbox("Selecione o CPF do usuário para alterar:", df_usuarios_select, placeholder='Selecione um CPF')
+
+    if cpf_selecionado != " ":
+
+        st.markdown("<h1 style='text-align: center; font-size: 20px;'>Altere os Dados:</h1>", unsafe_allow_html=True)
+
+        df_cpf_select = df_usuarios.loc[df_usuarios['CPF'] == cpf_selecionado] # df do cpf selecionado
+
+        acessos = ['USUARIO', 'ADMIN']
+
+        edit_df = st.data_editor(
+            df_cpf_select,
+            column_config={
+                "ACESSO": st.column_config.SelectboxColumn(
+                    "ACESSO", width="medium", options=acessos, default='USUARIO', required=True
+                ),
+                "CPF": st.column_config.TextColumn(
+                    "CPF", max_chars=11, validate=r"^\d{11}$", default='Insira o CPF'
+                )
+            },
+            hide_index=True,
+            use_container_width=True,
+            num_rows='fixed'
+        ) # df edicao
+
+        if st.button(':material/edit: Editar Usuários', use_container_width=True):
+
+            with st.spinner('Editando usuário...'):
+                try:
+                    df_usuarios = df_usuarios_cpf()
+
+                    # Verificar se não houve alteração
+                    if df_cpf_select[['CPF', 'ACESSO']].equals(edit_df[['CPF', 'ACESSO']]):
+                        st.error('Não há alterações.') 
+                        return
+                    
+                    # verificar se o cpf NAO foi alterado
+                    if cpf_selecionado != edit_df['CPF'].values:
+
+                        edit_df = tratamento_verif_users(edit_df) # tratamento e verificacoes
+                        if edit_df is None:
+                            return
+                    
+                    # Modificando o df original
+                    df_usuarios = df_usuarios_cpf()
+                    df_usuarios.loc[df_usuarios['CPF'] == cpf_selecionado, ['CPF', 'ACESSO']] = edit_df[['CPF', 'ACESSO']].values
+
+                    upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
+                    st.success("Usuário editado com sucesso!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f'Erro ao editar os dados: {e}')
+        
+        # escolher por cpf e editar a linha toda
+
+############################################
 
 @st.dialog("Excluir Usuários")
 def excluir_user():
     st.markdown("<h1 style='text-align: center; font-size: 20px;'>Excluir Usuários</h1>", unsafe_allow_html=True)
-    # Implementação futura
+    
+    # selecao por CPF
 
 if __name__ == "__main__":
     main()
