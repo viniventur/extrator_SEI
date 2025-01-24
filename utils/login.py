@@ -108,12 +108,15 @@ def login_sei(df_usuarios, historico_acesso, usuario_sei, senha_sei, orgao_sei):
                 nome = nome.split()[0]
                 st.session_state.nome_usuario = nome
 
-                # Atualizacao ultimo acesso
-                df_usuarios.loc[df_usuarios['CPF'] == usuario_sei, 'ULTIMO_ACESSO'] = st.session_state.data_atualizacao_users
-                #upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
-
-                # Base de logs de acesso se o acesso for online
+                # historico de navegacao caso o uso for online
                 if not is_local():
+
+                    # Atualizacao ultimo acesso
+                    df_usuarios.loc[df_usuarios['CPF'] == usuario_sei, 'ULTIMO_ACESSO'] = st.session_state.data_atualizacao_users
+                    upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
+
+
+                    # Base de logs de acesso se o acesso for online
                     dados_acesso_atual = {
                         'DATA_ACESSO': st.session_state.data_atualizacao_users,
                         'CPF': usuario_sei,
