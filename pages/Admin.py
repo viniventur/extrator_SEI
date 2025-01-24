@@ -1,4 +1,5 @@
 import pandas as pd
+import plotly.express as px
 import os
 import streamlit as st
 from utils.conn_gsheets import *
@@ -11,13 +12,17 @@ from utils.conn_gdriver import *
 import warnings
 import base64
 import time
+import locale
+
+from dialogs.admin_dialogs import *
 
 # Configurações Gerais
 warnings.filterwarnings('ignore')
 env = dotenv_values('.env')
 
 st.set_page_config(page_title='Extrator de dados do SEI - OGP/CGE', 
-                   page_icon='src/assets/Identidade visual/OGP/logo-ogp-favicon.png')
+                   page_icon='src/assets/Identidade visual/OGP/logo-ogp-favicon.png',
+                   layout='wide')
 
 # Verificação Inicial
 if 'driver' not in st.session_state:
@@ -93,189 +98,180 @@ def main():
     st.markdown(f"<h1 style='text-align: center; font-size: 20px;'>Última atualização: {st.session_state.data_atualizacao_users}</h1>", unsafe_allow_html=True)
     st.dataframe(df_usuarios, use_container_width=True, hide_index=True)
 
-@st.dialog("Adicionar Usuários", width='large')
-def add_user():
-    st.markdown("<h1 style='text-align: center; font-size: 20px;'>Insira os Dados:</h1>", unsafe_allow_html=True)
-    acessos = ['USUARIO', 'ADMIN']
+    st.divider()
+    
+    st.markdown(f"<h1 style='text-align: center; font-size: 35px;'>Histórico de Acessos</h1>", unsafe_allow_html=True)
 
-    lista_orgaos = lista_orgaos_login()
-    lista_orgaos.pop(0)
-    lista_orgaos.insert(0, "Selecione o Orgão")
+    # # Configurando o locale para português
+    if is_local():
+        locale.setlocale(locale.LC_TIME, "Portuguese_Brazil.1252")  # Para sistemas Windows
+    else:
+        locale.setlocale(locale.LC_TIME, "pt_BR.UTF-8")  # Para sistemas baseados em Unix/Linux
 
-    # cpf_selecionado = st.selectbox("Selecione o CPF do usuário para alterar:", df_usuarios_select, placeholder='Selecione um CPF')
+    #historico_acesso = df_historico_acesso()
+    historico_acesso = pd.read_csv(r'tests\teste_HISTORICO.csv', dtype=str)
+    historico_acesso.drop(columns='Unnamed: 0', inplace=True)
 
-    df_add_users = pd.DataFrame({"CPF": ["Insira o CPF"], "APELIDO": ['Insira um Apelido'], "ORGAO": ["Selecione o Orgão"], "ACESSO": ['USUARIO']})
-    add_df = st.data_editor(
-        df_add_users,
-        column_config={
-            "ACESSO": st.column_config.SelectboxColumn(
-                "ACESSO", width="medium", options=acessos, default='USUARIO', required=True
-            ),
-            "CPF": st.column_config.TextColumn(
-                "CPF", max_chars=11, validate=r"^\d{11}$", default='Insira o CPF'
-            ),
-            "APELIDO": st.column_config.TextColumn(
-                "APELIDO", validate=r"^[A-Za-z]*$", default='Insira um Apelido'
-            ),
-            "ORGAO": st.column_config.SelectboxColumn(
-                "ORGAO", width="medium", options=lista_orgaos, default='Selecione o Orgão', required=True
-            )
-        },
-        hide_index=True,
-        use_container_width=True,
-        num_rows='dynamic'
+    # =============================================
+    # TRATAMENTO DOS DADOS
+    # =============================================
+
+    # Convertendo a coluna 'DATA_ACESSO' para datetime
+    historico_acesso['DATA_ACESSO'] = pd.to_datetime(historico_acesso['DATA_ACESSO'], format='%d/%m/%Y %H:%M')
+
+    # Criando a coluna de mês/ano como pd.Period (preserva ordem temporal)
+    historico_acesso['MES_ANO'] = historico_acesso['DATA_ACESSO'].dt.to_period('M')
+
+    # Extraindo os meses únicos para o slider
+    meses_unicos = sorted(historico_acesso['MES_ANO'].unique())
+
+    # Verificando se há mais de um mês disponível
+    if len(meses_unicos) > 1:
+        # Adicionando o slider para selecionar intervalo de meses
+        mes_inicio, mes_fim = st.select_slider(
+            "Selecione o intervalo de meses:",
+            options=meses_unicos,
+            value=(meses_unicos[0], meses_unicos[-1])  # Valores inicial e final padrão
+        )
+    else:
+        # Caso haja apenas um mês, usar valores fixos e exibir mensagem
+        mes_inicio = meses_unicos[0] if len(meses_unicos) == 1 else None
+        mes_fim = mes_inicio  # Apenas um mês disponível
+        st.warning("Apenas um mês disponível. Exibindo dados para o único mês.")
+
+    # Filtrando os dados com base no intervalo selecionado
+    if mes_inicio and mes_fim:
+        historico_filtrado = historico_acesso[
+            (historico_acesso['MES_ANO'] >= mes_inicio) &
+            (historico_acesso['MES_ANO'] <= mes_fim)
+        ]
+    else:
+        historico_filtrado = pd.DataFrame()  # Caso não haja meses disponíveis, DataFrame vazio
+
+    # Verificação final
+    if historico_filtrado.empty:
+        st.error("Nenhum dado encontrado para o intervalo selecionado.")
+
+    # Filtrando os dados com base no intervalo de meses
+    historico_filtrado = historico_acesso[
+        (historico_acesso['MES_ANO'] >= mes_inicio) &
+        (historico_acesso['MES_ANO'] <= mes_fim)
+    ]
+
+    # =============================================
+    # GRÁFICO DE BARRAS EMPILHADAS VERTICAIS (MENSAL)
+    # =============================================
+
+    # Contando acessos por órgão e mês
+    df_contagem_empilhada = historico_filtrado.groupby(
+        [historico_filtrado['MES_ANO'], 'ORGAO']
+    ).size().reset_index()
+    df_contagem_empilhada.columns = ['MES_ANO', 'ORGÃO', 'Número de Acessos']
+
+    # Convertendo MES_ANO para string com nomes de meses em português para exibição
+    df_contagem_empilhada['MES_ANO_LABEL'] = df_contagem_empilhada['MES_ANO'].dt.strftime('%B/%Y').str.capitalize()
+
+    # Criando o gráfico de barras empilhadas
+    graf_empilhado = px.bar(
+        df_contagem_empilhada,
+        x='MES_ANO_LABEL',  # Exibe o rótulo formatado
+        y='Número de Acessos',
+        color='ORGÃO',
+        title='Acessos Empilhados por Órgão (Mensal)',
+        labels={'MES_ANO_LABEL': 'Mês/Ano', 'Número de Acessos': 'Número de Acessos', 'ORGÃO': 'Órgão'},
+        text_auto=True
     )
 
-    if st.button(':material/add: Adicionar Usuários', use_container_width=True):
-        with st.spinner('Adicionando usuários...'):
-            try:
-                df_usuarios = df_usuarios_cpf()
-                add_df = tratamento_verif_users(add_df, df_usuarios) # tratamento e verificacoes
-                if add_df is None:
-                    return
-                
-                add_df['ULTIMO_ACESSO'] = "NAO_ACESSOU"
+    # Ajustando a ordem cronológica dos meses com base no Period original
+    graf_empilhado.update_xaxes(categoryorder='array', categoryarray=df_contagem_empilhada['MES_ANO'].sort_values().astype(str))
 
-                df_adicionado = pd.concat([df_usuarios, add_df], axis=0, ignore_index=True)
-                upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_adicionado, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
-                st.success("Usuários adicionados com sucesso!")
-                st.rerun()
-            except Exception as e:
-                st.error(f'Erro ao atualizar dados: {e}')
+    graf_empilhado.update_layout(
+        title_font_size=16,
+        xaxis_title="Mês/Ano",
+        yaxis_title="Número de Acessos",
+        xaxis=dict(showgrid=True),
+        yaxis=dict(showgrid=True),
+        legend_title="Órgãos",
+        barmode='stack',  # Define barras empilhadas
+        template="plotly_white"
+    )
 
-############################################
+    st.plotly_chart(graf_empilhado, use_container_width=True)
 
-@st.dialog("Alterar Usuários", width='large')
-def edit_user():
+    # =============================================
+    # GRÁFICO DE BARRAS HORIZONTAIS POR ÓRGÃO
+    # =============================================
 
-    lista_orgaos = lista_orgaos_login()
-    lista_orgaos.pop(0)
-    lista_orgaos.insert(0, "Selecione o Orgão")
+    # Contando os acessos por órgão
+    orgaos_contagem = historico_filtrado['ORGAO'].value_counts().reset_index()
+    orgaos_contagem.columns = ['ORGÃO', 'Número de Acessos']
+    orgaos_contagem = orgaos_contagem.sort_values(by='Número de Acessos', ascending=True)
 
-    df_usuarios = df_usuarios_cpf()
-    df_usuarios_select = df_usuarios['CPF'].tolist()
-    df_usuarios_select.insert(0, " ")
-    cpf_selecionado = st.selectbox("Selecione o CPF do usuário para alterar:", df_usuarios_select, placeholder='Selecione um CPF')
+    graf_qnt_acessos = px.bar(
+        orgaos_contagem,
+        x='Número de Acessos',
+        y='ORGÃO',
+        orientation='h',
+        title='Órgãos com Mais Acessos',
+        text='Número de Acessos',
+        color='Número de Acessos',
+        color_continuous_scale='Blues'
+    )
 
-    if cpf_selecionado != " ":
+    graf_qnt_acessos.update_layout(
+        xaxis_title="Número de Acessos",
+        yaxis_title="Órgãos",
+        title_font_size=16,
+        xaxis=dict(showgrid=True),
+        yaxis=dict(showgrid=False),
+        template="plotly_white",
+        coloraxis_showscale=False
+    )
 
-        st.markdown("<h1 style='text-align: center; font-size: 20px;'>Altere os Dados:</h1>", unsafe_allow_html=True)
+    # =============================================
+    # GRÁFICO DE BARRAS HORIZONTAIS POR USUARIO
+    # =============================================
 
-        df_cpf_select = df_usuarios.loc[df_usuarios['CPF'] == cpf_selecionado].drop(columns='ULTIMO_ACESSO') # df do cpf selecionado
+    # Extraindo o primeiro nome da coluna NOME e concatenando com o órgão
+    historico_acesso['USUARIO'] = historico_acesso['NOME_SEI'].str.split().str[0] + " (" + historico_acesso['ORGAO'] + ")"
 
-        acessos = ['USUARIO', 'ADMIN']
+    # Contando os acessos por usuário
+    ranking_usuarios = historico_acesso['USUARIO'].value_counts().reset_index()
+    ranking_usuarios.columns = ['USUÁRIO', 'Número de Acessos']
 
-        edit_df = st.data_editor(
-            df_cpf_select,
-            column_config={
-                "ACESSO": st.column_config.SelectboxColumn(
-                    "ACESSO", width="medium", options=acessos, default='USUARIO', required=True
-                ),
-                "CPF": st.column_config.TextColumn(
-                    "CPF", max_chars=11, validate=r"^\d{11}$", default='Insira o CPF'
-                ),
-                "APELIDO": st.column_config.TextColumn(
-                    "APELIDO", validate=r"^[A-Za-z]*$", default='Insira um Apelido'
-                ),
-                "ORGAO": st.column_config.SelectboxColumn(
-                    "ORGAO", width="medium", options=lista_orgaos, default='Selecione o Orgão', required=True
-                )
-            },
-            hide_index=True,
-            use_container_width=True,
-            num_rows='fixed'
-        ) # df edicao
 
-        if st.button(':material/edit: Editar Usuários', use_container_width=True):
+    # Criando o gráfico de ranking
+    graf_ranking = px.bar(
+        ranking_usuarios,
+        x='Número de Acessos',
+        y='USUÁRIO',
+        orientation='h',
+        title='Ranking de Acessos por Usuário',
+        labels={'USUÁRIO': 'Usuário', 'Número de Acessos': 'Número de Acessos'},
+        text='Número de Acessos',
+        color='Número de Acessos',  # Para diferenciar com uma escala de cores
+        color_continuous_scale='Blues'
+    )
 
-            with st.spinner('Editando usuário...'):
-                try:
-                    df_usuarios = df_usuarios_cpf()
+    # Customizando o layout do gráfico
+    graf_ranking.update_layout(
+        title_font_size=16,
+        xaxis_title="Número de Acessos",
+        yaxis_title="Usuários",
+        xaxis=dict(showgrid=True),
+        yaxis=dict(showgrid=False, categoryorder='total ascending'),  # Ordena pela quantidade de acessos
+        template="plotly_white",
+        coloraxis_showscale=False
+    )
 
-                    # Verificar se não houve alteração
-                    if df_cpf_select[['CPF', 'APELIDO', 'ORGAO', 'ACESSO']].equals(edit_df[['CPF', 'APELIDO', 'ORGAO', 'ACESSO']]):
-                        st.error('Não há alterações.') 
-                        return
-                    
-                    # verificar se o cpf foi alterado
-                    if cpf_selecionado != edit_df['CPF'].values:
+    col1, col2 = st.columns([0.8,1.2])
 
-                        edit_df = tratamento_verif_users(edit_df, df_usuarios) # tratamento e verificacoes
-                        if edit_df is None:
-                            return
-                    else: # Verificacoes sem alteracao no CPF
-                        # Verificar se o orgao foi inserido
-                        orgao_teste_df = edit_df[edit_df["ORGAO"] != "Selecione o Orgão"]
-                        if len(orgao_teste_df) < 1:
-                            st.error('Usuários sem órgão informado:')
-                            st.dataframe(
-                                edit_df.loc[edit_df["ORGAO"] == "Selecione o Orgão", ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
-                                use_container_width=True,
-                                hide_index=True
-                            )
-                            return None
+    with col1:
+        st.plotly_chart(graf_qnt_acessos, use_container_width=True)
 
-                        # Verifica usuarios sem apelidos
-                        orgao_teste_df = edit_df[(edit_df["APELIDO"].str.strip() == "Insira um Apelido") | 
-                                                 (edit_df["APELIDO"].str.strip() == "") | 
-                                                 (edit_df["APELIDO"] == " ")]
-                        if len(orgao_teste_df) > 0 :
-                            st.error('Usuários sem apelidos informado:')
-                            st.dataframe(
-                                edit_df.loc[(edit_df["APELIDO"].str.strip() == "Insira um Apelido") | 
-                                            (edit_df["APELIDO"].str.strip() == "") | 
-                                            (edit_df["APELIDO"] == " "),
-                                            ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
-                                use_container_width=True,
-                                hide_index=True
-                            )
-                            return None
-                                            
-                    # Modificando o df original
-                    df_usuarios = df_usuarios_cpf()
-                    df_usuarios.loc[df_usuarios['CPF'] == cpf_selecionado, ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']] = edit_df[['CPF', 'APELIDO', 'ORGAO', 'ACESSO']].values
+    with col2:
+     st.plotly_chart(graf_ranking, use_container_width=True)
 
-                    upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
-                    st.success("Usuário editado com sucesso!")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f'Erro ao editar os dados: {e}')
-
-############################################
-
-@st.dialog("Excluir Usuários", width='large')
-def excluir_user():
-    
-    df_usuarios = df_usuarios_cpf()
-    df_usuarios_select = df_usuarios['CPF'].tolist()
-    df_usuarios_select.insert(0, " ")
-    cpf_selecionado = st.selectbox("Selecione o CPF do usuário para excluir:", df_usuarios_select, placeholder='Selecione um CPF')
-
-    if cpf_selecionado != " ":
-
-        st.write('Confira os dados a serem excluídos:')
-
-        df_cpf_select = df_usuarios.loc[df_usuarios['CPF'] == cpf_selecionado] # df do cpf selecionado
-
-        st.dataframe(df_cpf_select,
-                        use_container_width=True,
-                        hide_index=True
-                    )
-
-        if st.button(':material/delete: Excluir Usuários', use_container_width=True):
-
-            with st.spinner('Excluindo usuário...'):
-                try:
-                    df_usuarios = df_usuarios_cpf()
-                    
-                    # Modificando o df original
-                    df_usuarios = df_usuarios.loc[df_usuarios['CPF'] != cpf_selecionado]
-
-                    upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
-                    st.success("Usuário editado com sucesso!")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f'Erro ao excluir os dados: {e}')
 
 if __name__ == "__main__":
     main()
