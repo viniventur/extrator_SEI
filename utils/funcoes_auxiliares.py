@@ -233,6 +233,13 @@ def validacao_cpf(cpf):
         return True
     else:
         return False
+    
+def data_hr_atual():
+    # Obtém a data e hora atual
+    now = datetime.now()
+    # Formata no estilo dd-mm-yyyy hh:mm
+    data_hora_atual = now.strftime("%d/%m/%Y %H:%M")
+    return data_hora_atual
 
 
 

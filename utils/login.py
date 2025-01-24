@@ -57,23 +57,17 @@ def login_sei(df_usuarios, usuario_sei, senha_sei, orgao_sei):
         # Verificando acesso do usuario
         with st.spinner('Verificando acesso...'):
 
-            # acesso criador
-            if usuario_sei != secrets['CPF_CRIADOR']:
-
-                # Verifica se o usuario tem acesso
-                if usuario_sei in df_usuarios['CPF'].values:
-                    if len(df_usuarios.loc[df_usuarios['CPF'] == usuario_sei]['ACESSO'].unique()) > 1: # Verifica se o usuario tem acessos conflitantes
-                        st.error('Usuário contém mais de um acesso registrado! Contacte um administrador.')
-                        return
-                    else:
-                        st.session_state.acesso = df_usuarios.loc[df_usuarios['CPF'] == usuario_sei]['ACESSO'].unique()
-                        pass
-                else:
-                    st.error('O usuário não tem acesso.')
+            # Verifica se o usuario tem acesso
+            if usuario_sei in df_usuarios['CPF'].values:
+                if len(df_usuarios.loc[df_usuarios['CPF'] == usuario_sei]['ACESSO'].unique()) > 1: # Verifica se o usuario tem acessos conflitantes
+                    st.error('Usuário contém mais de um acesso registrado! Contacte um administrador.')
                     return
+                else:
+                    st.session_state.acesso = df_usuarios.loc[df_usuarios['CPF'] == usuario_sei]['ACESSO'].unique()
+                    pass
             else:
-                st.session_state.acesso = 'ADMIN'
-                pass
+                st.error('O usuário não tem acesso.')
+                return
 
         with st.spinner('Entrando no SEI...'):
             

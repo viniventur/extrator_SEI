@@ -174,11 +174,12 @@ def download_file_by_name(file_name, folder_id=None):
         st.error(f'Erro: {e}')
         return None
 
-@st.cache_data(show_spinner=False)
+#@st.cache_data(show_spinner=False)
 def df_usuarios_cpf():
     try:
         #df = pd.read_csv(download_file_from_drive_id(secrets['google_credentials']['AUTORIZACAO_CPF_ID']), dtype=str)
         df = pd.read_csv(download_file_by_name('cpf_autorizados_extrator_sei', folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID']), dtype=str)
+        st.session_state.data_atualizacao_users  = data_hr_atual()
         return df
     except Exception as e:
         st.error(f'Erro ao obter acesso: {e}')

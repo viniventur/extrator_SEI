@@ -45,30 +45,72 @@ st.markdown(hide_style, unsafe_allow_html=True)
 
 # Tratamento e verificacoes de dados de acesso
 def tratamento_verif_users(add_df):
+
     add_df = add_df[add_df["CPF"] != "Insira o CPF"]
 
     if len(add_df) < 1:
-        st.error('Insira dados para adicionar usuários.')
+        st.error('Insira ao menos 1 CPF para adicionar usuários.')
         return None
+    
+    # Verificar se o orgao foi inserido
+    orgao_teste_df = add_df[add_df["ORGAO"] != "Selecione o Orgão"]
+    if len(orgao_teste_df) < 1:
+        st.error('Usuários sem órgão informado:')
+        st.dataframe(
+            add_df.loc[add_df["ORGAO"] == "Selecione o Orgão", ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
+            use_container_width=True,
+            hide_index=True
+        )
+        return None
+
+    # Verificar se um usuario possui dois registros com 2 orgaos diferentes
+    duplicados_diferentes_orgao = add_df.groupby('CPF')['ORGAO'].nunique()
+    cpf_diferentes = duplicados_diferentes_orgao[duplicados_diferentes_orgao > 1].index
+    if not cpf_diferentes.empty:
+        st.error('CPF duplicados com órgãos diferentes:')
+        st.dataframe(
+            add_df[add_df['CPF'].isin(cpf_diferentes)][['CPF', 'APELIDO', 'ORGAO', 'ACESSO']].sort_values(by='CPF'),
+            use_container_width=True,
+            hide_index=True
+        )
+        return None
+
+
+    # Verifica usuarios sem apelidos
+    orgao_teste_df = add_df[(add_df["APELIDO"].str.strip() == "Insira um Apelido") | 
+                                (add_df["APELIDO"].str.strip() == "") | 
+                                (add_df["APELIDO"] == " ")]
+    if len(orgao_teste_df) > 0 :
+        st.error('Usuários sem apelidos informado:')
+        st.dataframe(
+            add_df.loc[(add_df["APELIDO"].str.strip() == "Insira um Apelido") | 
+                        (add_df["APELIDO"].str.strip() == "") | 
+                        (add_df["APELIDO"] == " "),
+                        ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
+            use_container_width=True,
+            hide_index=True
+        )
+        return None
+
 
     # Validação de CPF
     add_df["CPF_VALIDACAO"] = add_df["CPF"].apply(validacao_cpf)
     if any(~add_df["CPF_VALIDACAO"]):
         st.error('Os dados contêm CPFs inválidos:')
         st.dataframe(
-            add_df.loc[~add_df["CPF_VALIDACAO"], ['CPF', 'ACESSO']],
+            add_df.loc[~add_df["CPF_VALIDACAO"], ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
             use_container_width=True,
             hide_index=True
         )
         return None
 
     # Verifica duplicados com acessos diferentes
-    duplicados_diferentes = add_df.groupby('CPF')['ACESSO'].nunique()
-    cpf_diferentes = duplicados_diferentes[duplicados_diferentes > 1].index
+    duplicados_diferentes_cpf = add_df.groupby('CPF')['ACESSO'].nunique()
+    cpf_diferentes = duplicados_diferentes_cpf[duplicados_diferentes_cpf > 1].index
     if not cpf_diferentes.empty:
         st.error('CPF duplicados com acessos diferentes:')
         st.dataframe(
-            add_df[add_df['CPF'].isin(cpf_diferentes)][['CPF', 'ACESSO']].sort_values(by='CPF'),
+            add_df[add_df['CPF'].isin(cpf_diferentes)][['CPF', 'APELIDO', 'ORGAO', 'ACESSO']].sort_values(by='CPF'),
             use_container_width=True,
             hide_index=True
         )
@@ -79,16 +121,17 @@ def tratamento_verif_users(add_df):
     if add_df["CPF"].isin(df_usuarios["CPF"]).any():
         st.error("Os CPFs abaixo já constam na base.")
         st.dataframe(
-            add_df.loc[add_df["CPF"].isin(df_usuarios["CPF"])][['CPF', 'ACESSO']],
+            add_df.loc[add_df["CPF"].isin(df_usuarios["CPF"])][['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
             use_container_width=True,
             hide_index=True
         )
         return None
 
-    return add_df.drop_duplicates(subset=['CPF'])[['CPF', 'ACESSO']]
+    return add_df.drop_duplicates(subset=['CPF'])[['CPF', 'APELIDO', 'ORGAO', 'ACESSO']]
 
 # Funções Principais
 def main():
+
     st.session_state.pag = 'ADMIN'
 
     run_sidebar()
@@ -133,14 +176,21 @@ def main():
     else:
         df_usuarios = df_usuarios_cpf()
 
+    st.markdown(f"<h1 style='text-align: center; font-size: 20px;'>Última atualização: {st.session_state.data_atualizacao_users}</h1>", unsafe_allow_html=True)
     st.dataframe(df_usuarios, use_container_width=True, hide_index=True)
 
-@st.dialog("Adicionar Usuários")
+@st.dialog("Adicionar Usuários", width='large')
 def add_user():
     st.markdown("<h1 style='text-align: center; font-size: 20px;'>Insira os Dados:</h1>", unsafe_allow_html=True)
     acessos = ['USUARIO', 'ADMIN']
 
-    df_add_users = pd.DataFrame({"CPF": ["Insira o CPF"], "ACESSO": ['USUARIO']})
+    lista_orgaos = lista_orgaos_login()
+    lista_orgaos.pop(0)
+    lista_orgaos.insert(0, "Selecione o Orgão")
+
+    # cpf_selecionado = st.selectbox("Selecione o CPF do usuário para alterar:", df_usuarios_select, placeholder='Selecione um CPF')
+
+    df_add_users = pd.DataFrame({"CPF": ["Insira o CPF"], "APELIDO": ['Insira um Apelido'], "ORGAO": ["Selecione o Orgão"], "ACESSO": ['USUARIO']})
     add_df = st.data_editor(
         df_add_users,
         column_config={
@@ -149,6 +199,12 @@ def add_user():
             ),
             "CPF": st.column_config.TextColumn(
                 "CPF", max_chars=11, validate=r"^\d{11}$", default='Insira o CPF'
+            ),
+            "APELIDO": st.column_config.TextColumn(
+                "APELIDO", validate=r"^[A-Za-z]*$", default='Insira um Apelido'
+            ),
+            "ORGAO": st.column_config.SelectboxColumn(
+                "ORGAO", width="medium", options=lista_orgaos, default='Selecione o Orgão', required=True
             )
         },
         hide_index=True,
@@ -173,8 +229,12 @@ def add_user():
 
 ############################################
 
-@st.dialog("Alterar Usuários")
+@st.dialog("Alterar Usuários", width='large')
 def edit_user():
+
+    lista_orgaos = lista_orgaos_login()
+    lista_orgaos.pop(0)
+    lista_orgaos.insert(0, "Selecione o Orgão")
 
     df_usuarios = df_usuarios_cpf()
     df_usuarios_select = df_usuarios['CPF'].tolist()
@@ -197,6 +257,12 @@ def edit_user():
                 ),
                 "CPF": st.column_config.TextColumn(
                     "CPF", max_chars=11, validate=r"^\d{11}$", default='Insira o CPF'
+                ),
+                "APELIDO": st.column_config.TextColumn(
+                    "APELIDO", validate=r"^[A-Za-z]*$", default='Insira um Apelido'
+                ),
+                "ORGAO": st.column_config.SelectboxColumn(
+                    "ORGAO", width="medium", options=lista_orgaos, default='Selecione o Orgão', required=True
                 )
             },
             hide_index=True,
@@ -211,39 +277,63 @@ def edit_user():
                     df_usuarios = df_usuarios_cpf()
 
                     # Verificar se não houve alteração
-                    if df_cpf_select[['CPF', 'ACESSO']].equals(edit_df[['CPF', 'ACESSO']]):
+                    if df_cpf_select[['CPF', 'APELIDO', 'ORGAO', 'ACESSO']].equals(edit_df[['CPF', 'APELIDO', 'ORGAO', 'ACESSO']]):
                         st.error('Não há alterações.') 
                         return
                     
-                    # verificar se o cpf NAO foi alterado
+                    # verificar se o cpf foi alterado
                     if cpf_selecionado != edit_df['CPF'].values:
 
                         edit_df = tratamento_verif_users(edit_df) # tratamento e verificacoes
                         if edit_df is None:
                             return
-                    
+                    else: # Verificacoes sem alteracao no CPF
+                        # Verificar se o orgao foi inserido
+                        orgao_teste_df = edit_df[edit_df["ORGAO"] != "Selecione o Orgão"]
+                        if len(orgao_teste_df) < 1:
+                            st.error('Usuários sem órgão informado:')
+                            st.dataframe(
+                                edit_df.loc[edit_df["ORGAO"] == "Selecione o Orgão", ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
+                                use_container_width=True,
+                                hide_index=True
+                            )
+                            return None
+
+                        # Verifica usuarios sem apelidos
+                        orgao_teste_df = edit_df[(edit_df["APELIDO"].str.strip() == "Insira um Apelido") | 
+                                                 (edit_df["APELIDO"].str.strip() == "") | 
+                                                 (edit_df["APELIDO"] == " ")]
+                        if len(orgao_teste_df) > 0 :
+                            st.error('Usuários sem apelidos informado:')
+                            st.dataframe(
+                                edit_df.loc[(edit_df["APELIDO"].str.strip() == "Insira um Apelido") | 
+                                            (edit_df["APELIDO"].str.strip() == "") | 
+                                            (edit_df["APELIDO"] == " "),
+                                            ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
+                                use_container_width=True,
+                                hide_index=True
+                            )
+                            return None
+                                            
                     # Modificando o df original
                     df_usuarios = df_usuarios_cpf()
-                    df_usuarios.loc[df_usuarios['CPF'] == cpf_selecionado, ['CPF', 'ACESSO']] = edit_df[['CPF', 'ACESSO']].values
+                    df_usuarios.loc[df_usuarios['CPF'] == cpf_selecionado, ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']] = edit_df[['CPF', 'APELIDO', 'ORGAO', 'ACESSO']].values
 
                     upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
                     st.success("Usuário editado com sucesso!")
                     st.rerun()
                 except Exception as e:
                     st.error(f'Erro ao editar os dados: {e}')
-        
-        # escolher por cpf e editar a linha toda
 
 ############################################
 
-@st.dialog("Excluir Usuários")
+@st.dialog("Excluir Usuários", width='large')
 def excluir_user():
-    st.markdown("<h1 style='text-align: center; font-size: 20px;'>Excluir Usuários</h1>", unsafe_allow_html=True)
     
     df_usuarios = df_usuarios_cpf()
     df_usuarios_select = df_usuarios['CPF'].tolist()
     df_usuarios_select.insert(0, " ")
-    cpf_selecionado = st.selectbox("Selecione o CPF do usuário para alterar:", df_usuarios_select, placeholder='Selecione um CPF')
+    cpf_selecionado = st.selectbox("Selecione o CPF do usuário para excluir:", df_usuarios_select, placeholder='Selecione um CPF')
 
     if cpf_selecionado != " ":
 
