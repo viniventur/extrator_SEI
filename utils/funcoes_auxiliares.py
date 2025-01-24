@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv, dotenv_values
 import streamlit as st
 from datetime import datetime
+import pytz
 import pandas as pd
 from io import BytesIO
 from openpyxl.utils import get_column_letter
@@ -236,8 +237,10 @@ def validacao_cpf(cpf):
     
 
 def data_hr_atual():
-    # Obtém a data e hora atual
-    now = datetime.now()
+    # Define o fuso horário GMT-3
+    fuso_horario = pytz.timezone("America/Sao_Paulo")
+    # Obtém a data e hora atual no fuso horário especificado
+    now = datetime.now(fuso_horario)
     # Formata no estilo dd-mm-yyyy hh:mm
     data_hora_atual = now.strftime("%d/%m/%Y %H:%M")
     return data_hora_atual
