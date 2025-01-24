@@ -51,8 +51,6 @@ st.markdown(hide_style, unsafe_allow_html=True)
 # Funções Principais
 def main():
 
-    st.query_params.from_dict({"lang": "pt_BR", "other_param": "value"})
-
     st.session_state.pag = 'ADMIN'
 
     run_sidebar()
@@ -103,6 +101,12 @@ def main():
     st.divider()
     
     st.markdown(f"<h1 style='text-align: center; font-size: 35px;'>Histórico de Acessos</h1>", unsafe_allow_html=True)
+
+    # # Configurando o locale para português
+    if is_local():
+        locale.setlocale(locale.LC_ALL, "Portuguese_Brazil.1252")  # Para sistemas Windows
+    else:
+        locale.setlocale(locale.LC_ALL, "pt_BR")  # Para sistemas baseados em Unix/Linux
 
     historico_acesso = df_historico_acesso()
     # historico_acesso = pd.read_csv(r'tests\teste_HISTORICO.csv', dtype=str)

@@ -1,2 +1,4 @@
 chromium
 chromium-driver
+locales
+locales-all
