@@ -100,10 +100,20 @@ def login_sei(df_usuarios, usuario_sei, senha_sei, orgao_sei):
                 alerta.accept()
                 driver.quit()
             except:
-                nome_elemento = driver.find_element(By.XPATH, '//*[@id="lnkUsuarioSistema"]')
+                # Pegar o nome completo do usuário
+                nome_elemento = driver.find_element(By.XPATH, '//*[@id="lnkUsuarioSistema"]') # Pegar o nome completo do usuário
                 nome = nome_elemento.get_attribute("title")
                 nome = nome.split()[0]
                 st.session_state.nome_usuario = nome
+
+                # Atualizacao ultimo acesso
+                df_usuarios.loc[df_usuarios['CPF'] == usuario_sei, 'ULTIMO_ACESSO'] = st.session_state.data_atualizacao_users
+                upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
+
+                # Base de logs de acesso
+                
+
+                # Redirecionamento
                 st.success(f'Olá, {nome}! Acesso efetuado! Redirecionando, aguarde...')
                 lista_unidades_sei()
                 time.sleep(2)

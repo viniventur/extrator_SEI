@@ -43,92 +43,6 @@ if not is_local():
     """
 st.markdown(hide_style, unsafe_allow_html=True)
 
-# Tratamento e verificacoes de dados de acesso
-def tratamento_verif_users(add_df):
-
-    add_df = add_df[add_df["CPF"] != "Insira o CPF"]
-
-    if len(add_df) < 1:
-        st.error('Insira ao menos 1 CPF para adicionar usuários.')
-        return None
-    
-    # Verificar se o orgao foi inserido
-    orgao_teste_df = add_df[add_df["ORGAO"] != "Selecione o Orgão"]
-    if len(orgao_teste_df) < 1:
-        st.error('Usuários sem órgão informado:')
-        st.dataframe(
-            add_df.loc[add_df["ORGAO"] == "Selecione o Orgão", ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
-            use_container_width=True,
-            hide_index=True
-        )
-        return None
-
-    # Verificar se um usuario possui dois registros com 2 orgaos diferentes
-    duplicados_diferentes_orgao = add_df.groupby('CPF')['ORGAO'].nunique()
-    cpf_diferentes = duplicados_diferentes_orgao[duplicados_diferentes_orgao > 1].index
-    if not cpf_diferentes.empty:
-        st.error('CPF duplicados com órgãos diferentes:')
-        st.dataframe(
-            add_df[add_df['CPF'].isin(cpf_diferentes)][['CPF', 'APELIDO', 'ORGAO', 'ACESSO']].sort_values(by='CPF'),
-            use_container_width=True,
-            hide_index=True
-        )
-        return None
-
-
-    # Verifica usuarios sem apelidos
-    orgao_teste_df = add_df[(add_df["APELIDO"].str.strip() == "Insira um Apelido") | 
-                                (add_df["APELIDO"].str.strip() == "") | 
-                                (add_df["APELIDO"] == " ")]
-    if len(orgao_teste_df) > 0 :
-        st.error('Usuários sem apelidos informado:')
-        st.dataframe(
-            add_df.loc[(add_df["APELIDO"].str.strip() == "Insira um Apelido") | 
-                        (add_df["APELIDO"].str.strip() == "") | 
-                        (add_df["APELIDO"] == " "),
-                        ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
-            use_container_width=True,
-            hide_index=True
-        )
-        return None
-
-
-    # Validação de CPF
-    add_df["CPF_VALIDACAO"] = add_df["CPF"].apply(validacao_cpf)
-    if any(~add_df["CPF_VALIDACAO"]):
-        st.error('Os dados contêm CPFs inválidos:')
-        st.dataframe(
-            add_df.loc[~add_df["CPF_VALIDACAO"], ['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
-            use_container_width=True,
-            hide_index=True
-        )
-        return None
-
-    # Verifica duplicados com acessos diferentes
-    duplicados_diferentes_cpf = add_df.groupby('CPF')['ACESSO'].nunique()
-    cpf_diferentes = duplicados_diferentes_cpf[duplicados_diferentes_cpf > 1].index
-    if not cpf_diferentes.empty:
-        st.error('CPF duplicados com acessos diferentes:')
-        st.dataframe(
-            add_df[add_df['CPF'].isin(cpf_diferentes)][['CPF', 'APELIDO', 'ORGAO', 'ACESSO']].sort_values(by='CPF'),
-            use_container_width=True,
-            hide_index=True
-        )
-        return None
-
-    # Verificar duplicidade na base de dados
-    df_usuarios = df_usuarios_cpf()
-    if add_df["CPF"].isin(df_usuarios["CPF"]).any():
-        st.error("Os CPFs abaixo já constam na base.")
-        st.dataframe(
-            add_df.loc[add_df["CPF"].isin(df_usuarios["CPF"])][['CPF', 'APELIDO', 'ORGAO', 'ACESSO']],
-            use_container_width=True,
-            hide_index=True
-        )
-        return None
-
-    return add_df.drop_duplicates(subset=['CPF'])[['CPF', 'APELIDO', 'ORGAO', 'ACESSO']]
-
 # Funções Principais
 def main():
 
@@ -216,9 +130,11 @@ def add_user():
         with st.spinner('Adicionando usuários...'):
             try:
                 df_usuarios = df_usuarios_cpf()
-                add_df = tratamento_verif_users(add_df) # tratamento e verificacoes
+                add_df = tratamento_verif_users(add_df, df_usuarios) # tratamento e verificacoes
                 if add_df is None:
                     return
+                
+                add_df['ULTIMO_ACESSO'] = "NAO_ACESSOU"
 
                 df_adicionado = pd.concat([df_usuarios, add_df], axis=0, ignore_index=True)
                 upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_adicionado, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
@@ -245,7 +161,7 @@ def edit_user():
 
         st.markdown("<h1 style='text-align: center; font-size: 20px;'>Altere os Dados:</h1>", unsafe_allow_html=True)
 
-        df_cpf_select = df_usuarios.loc[df_usuarios['CPF'] == cpf_selecionado] # df do cpf selecionado
+        df_cpf_select = df_usuarios.loc[df_usuarios['CPF'] == cpf_selecionado].drop(columns='ULTIMO_ACESSO') # df do cpf selecionado
 
         acessos = ['USUARIO', 'ADMIN']
 
@@ -284,7 +200,7 @@ def edit_user():
                     # verificar se o cpf foi alterado
                     if cpf_selecionado != edit_df['CPF'].values:
 
-                        edit_df = tratamento_verif_users(edit_df) # tratamento e verificacoes
+                        edit_df = tratamento_verif_users(edit_df, df_usuarios) # tratamento e verificacoes
                         if edit_df is None:
                             return
                     else: # Verificacoes sem alteracao no CPF
