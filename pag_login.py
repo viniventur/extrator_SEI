@@ -100,7 +100,8 @@ def main():
             st.error(f"Informe o órgão.")
         else:
             df_usuarios = df_usuarios_cpf()
-            login_sei(df_usuarios, usuario, senha, orgao)
+            historico_acesso = df_historico_acesso()
+            login_sei(df_usuarios, historico_acesso, usuario, senha, orgao)
         
 if __name__ == "__main__":
     main()

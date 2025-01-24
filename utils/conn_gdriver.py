@@ -174,6 +174,7 @@ def download_file_by_name(file_name, folder_id=None):
         st.error(f'Erro: {e}')
         return None
 
+# Dados de permissao e tipo de acesso
 #@st.cache_data(show_spinner=False)
 def df_usuarios_cpf():
     try:
@@ -182,7 +183,17 @@ def df_usuarios_cpf():
         st.session_state.data_atualizacao_users  = data_hr_atual()
         return df
     except Exception as e:
-        st.error(f'Erro ao obter acesso: {e}')
+        st.error(f'Erro ao obter dados de acesso: {e}')
+
+# Dados de historico de acesso
+def df_historico_acesso():
+    try:
+        #df = pd.read_csv(download_file_from_drive_id(secrets['google_credentials']['AUTORIZACAO_CPF_ID']), dtype=str)
+        df = pd.read_csv(download_file_by_name('acessos_extrator_sei', folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID']), dtype=str)
+        st.session_state.data_atualizacao_hist_acesso  = data_hr_atual()
+        return df
+    except Exception as e:
+        st.error(f'Erro ao obter histórico de acesso: {e}')
 
 # recarregar df de usuarios
 def recarregar_usuarios():

@@ -44,7 +44,7 @@ def lista_orgaos_login():
 
         st.error(f"Obtenção de órgãos disponíveis no SEI falhou: {e}")
 
-def login_sei(df_usuarios, usuario_sei, senha_sei, orgao_sei):
+def login_sei(df_usuarios, historico_acesso, usuario_sei, senha_sei, orgao_sei):
 
     #st.write('Carregando...')
 
@@ -103,15 +103,28 @@ def login_sei(df_usuarios, usuario_sei, senha_sei, orgao_sei):
                 # Pegar o nome completo do usuário
                 nome_elemento = driver.find_element(By.XPATH, '//*[@id="lnkUsuarioSistema"]') # Pegar o nome completo do usuário
                 nome = nome_elemento.get_attribute("title")
+                nome_completo_user = nome.split('(')[0].strip()
+                st.session_state.nome_completo_user = nome_completo_user
                 nome = nome.split()[0]
                 st.session_state.nome_usuario = nome
 
                 # Atualizacao ultimo acesso
                 df_usuarios.loc[df_usuarios['CPF'] == usuario_sei, 'ULTIMO_ACESSO'] = st.session_state.data_atualizacao_users
-                upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
+                #upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
 
-                # Base de logs de acesso
-                
+                # Base de logs de acesso se o acesso for online
+                if not is_local():
+                    dados_acesso_atual = {
+                        'DATA_ACESSO': st.session_state.data_atualizacao_users,
+                        'CPF': usuario_sei,
+                        'NOME_SEI': nome_completo_user,
+                        'ORGAO': orgao_sei
+                    }
+                    dados_acesso_atual = pd.DataFrame([dados_acesso_atual])
+
+                    # Concatenar os dados ao DataFrame existente
+                    df_acesso_atualizado = pd.concat([historico_acesso, dados_acesso_atual], ignore_index=True)
+                    upload_and_replace_file_drive('acessos_extrator_sei', df_acesso_atualizado, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
 
                 # Redirecionamento
                 st.success(f'Olá, {nome}! Acesso efetuado! Redirecionando, aguarde...')
