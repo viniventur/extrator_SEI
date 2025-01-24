@@ -106,11 +106,11 @@ def main():
     if is_local():
         locale.setlocale(locale.LC_TIME, "Portuguese_Brazil.1252")  # Para sistemas Windows
     else:
-        locale.setlocale(locale.LC_TIME, "pt_BR.UTF-8")  # Para sistemas baseados em Unix/Linux
+        locale.setlocale(locale.LC_TIME, "pt_BR")  # Para sistemas baseados em Unix/Linux
 
-    #historico_acesso = df_historico_acesso()
-    historico_acesso = pd.read_csv(r'tests\teste_HISTORICO.csv', dtype=str)
-    historico_acesso.drop(columns='Unnamed: 0', inplace=True)
+    historico_acesso = df_historico_acesso()
+    # historico_acesso = pd.read_csv(r'tests\teste_HISTORICO.csv', dtype=str)
+    # historico_acesso.drop(columns='Unnamed: 0', inplace=True)
 
     # =============================================
     # TRATAMENTO DOS DADOS
