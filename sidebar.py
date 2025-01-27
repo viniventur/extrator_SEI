@@ -34,26 +34,12 @@ def run_sidebar():
                 st.sidebar.divider()
 
                 # NAVEGACAO
-                
-                # INICIO
-                st.sidebar.page_link(modulos[1][1],
-                        label=modulos[1][0],
-                        icon=modulos[1][2])
 
-                # ANDAMENTO DE PROCESSO
-                st.sidebar.page_link(modulos[2][1],
-                                        label=modulos[2][0],
-                                        icon=modulos[2][2])
+                for modulo in range(1,6): # MODULOS COMPLETOS
                 
-                # CONTAGEM DE DOCS
-                st.sidebar.page_link(modulos[3][1],
-                                    label=modulos[3][0],
-                                    icon=modulos[3][2])
-                
-                # ADMIN
-                st.sidebar.page_link(modulos[4][1],
-                        label=modulos[4][0],
-                        icon=modulos[4][2])
+                    st.sidebar.page_link(modulos[modulo][1],
+                            label=modulos[modulo][0],
+                            icon=modulos[modulo][2])
 
                 st.divider()
 
@@ -76,20 +62,11 @@ def run_sidebar():
 
                 # navegacao
 
-                # INICIO
-                st.sidebar.page_link(modulos[1][1],
-                        label=modulos[1][0],
-                        icon=modulos[1][2])
+                for modulo in range(1,5): # MODULOS SEM ADMIN
                 
-                # ANDAMENTO DE PROCESSO
-                st.sidebar.page_link(modulos[2][1],
-                                        label=modulos[2][0],
-                                        icon=modulos[2][2])
-                
-                # CONTAGEM DE DOCS
-                st.sidebar.page_link(modulos[3][1],
-                                    label=modulos[3][0],
-                                    icon=modulos[3][2])
+                    st.sidebar.page_link(modulos[modulo][1],
+                            label=modulos[modulo][0],
+                            icon=modulos[modulo][2])
 
                 st.divider()
 

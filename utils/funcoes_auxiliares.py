@@ -30,9 +30,10 @@ def modulos():
     modulos = {
         0: ['Login', 'pag_login.py'],
         1: ['Início', 'pages/Inicio.py', ':material/home:'],
-        2: ['Andamento de Processos', 'pages/Andamento de processos.py', ':material/explore:'],
-        3: ['Contagem de Documentos', 'pages/Contagem de documentos.py', ':material/equal:'],
-        4: ['Administração', 'pages/Admin.py', ':material/admin_panel_settings:']
+        2: ['Análise de Documentos', 'pages/Analise_de_documentos.py', ':material/quick_reference_all:'],
+        3: ['Andamento de Processos', 'pages/Andamento_de_processos.py', ':material/explore:'],
+        4: ['Contagem de Documentos', 'pages/Contagem_de_documentos.py', ':material/equal:'],
+        5: ['Administração', 'pages/Admin.py', ':material/admin_panel_settings:']
     }
     return modulos
 
@@ -176,6 +177,7 @@ def verificar_acesso_processo(processo):
 
     # Verificar se o processo não foi encontrado
     try:
+        mudar_iframe('arvore')
         elemento_nao_encontrado = driver.find_element("xpath", '//*[@id="sbmPesquisar"]')
         if elemento_nao_encontrado.is_displayed():
             valor_acesso = "Processo Não encontrado"

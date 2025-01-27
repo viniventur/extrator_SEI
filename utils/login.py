@@ -50,24 +50,26 @@ def login_sei(df_usuarios, historico_acesso, usuario_sei, senha_sei, orgao_sei):
 
     try:
 
-        driver = chrome()
+        with st.spinner('Verificando acesso do CPF...'):
 
-        st.session_state.driver = driver
+            driver = chrome()
 
-        # Verificando acesso do usuario
-        with st.spinner('Verificando acesso...'):
+            st.session_state.driver = driver
 
-            # Verifica se o usuario tem acesso
-            if usuario_sei in df_usuarios['CPF'].values:
-                if len(df_usuarios.loc[df_usuarios['CPF'] == usuario_sei]['ACESSO'].unique()) > 1: # Verifica se o usuario tem acessos conflitantes
-                    st.error('Usuário contém mais de um acesso registrado! Contacte um administrador.')
-                    return
+            # Verificando acesso do usuario
+            with st.spinner('Verificando acesso...'):
+
+                # Verifica se o usuario tem acesso
+                if usuario_sei in df_usuarios['CPF'].values:
+                    if len(df_usuarios.loc[df_usuarios['CPF'] == usuario_sei]['ACESSO'].unique()) > 1: # Verifica se o usuario tem acessos conflitantes
+                        st.error('Usuário contém mais de um acesso registrado! Contacte um administrador.')
+                        return
+                    else:
+                        st.session_state.acesso = df_usuarios.loc[df_usuarios['CPF'] == usuario_sei]['ACESSO'].unique()
+                        pass
                 else:
-                    st.session_state.acesso = df_usuarios.loc[df_usuarios['CPF'] == usuario_sei]['ACESSO'].unique()
-                    pass
-            else:
-                st.error('O usuário não tem acesso.')
-                return
+                    st.error('O usuário não tem acesso.')
+                    return
 
         with st.spinner('Entrando no SEI...'):
             

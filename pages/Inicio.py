@@ -43,16 +43,16 @@ else:
         header {visibility: hidden}
         </style>
     """
-@st.cache_data(show_spinner=False)
+
 def modulos_menu():
 
     if st.session_state.acesso == 'ADMIN':
 
         # Filtrar os módulos a partir do índice 2   
-        modulos_filtrados = {k: v for k, v in modulos.items() if int(k) >= 1} # filtrar modulos sem pagina de login
+        modulos_filtrados = {k: v for k, v in modulos.items() if (int(k) >= 1)} # filtrar modulos sem pagina de login
     else:
         # Filtrar os módulos a partir do índice 2 e retirar o admin
-        modulos_filtrados = {k: v for k, v in modulos.items() if (int(k) >= 1) & (int(k) < 4)} # filtrar modulos sem pagina de login
+        modulos_filtrados = {k: v for k, v in modulos.items() if (int(k) >= 1) & (int(k) < 5)} # filtrar modulos sem pagina de login
 
     # Variáveis para armazenar os valores
     nome_modulos = []

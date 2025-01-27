@@ -79,7 +79,7 @@ def main():
 
         st.write(f'''
                  
-                 :warning: Os dados de logins fornecidos não são armazenados, servindo apenas para o sistema logar no SEI e carregar as informações.                 
+                 :warning: As senhas fornecidas não são armazenadas, servindo apenas para o sistema logar no SEI e carregar as informações.                 
                  
                  ''')
 
