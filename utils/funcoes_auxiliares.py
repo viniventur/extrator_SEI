@@ -40,8 +40,19 @@ def modulos():
 modulos = modulos()
 
 # Função para detectar se está rodando localmente
-def is_local():
-    return "IS_LOCAL" in env
+def is_local(path='.'):
+    """
+    Verifica se há um arquivo ou diretório chamado '.env' em um caminho especificado.
+    
+    :param path: Caminho onde a verificação será realizada. Padrão é o diretório atual.
+    :return: String indicando se '.env' é um arquivo, diretório ou não existe.
+    """
+    env_path = os.path.join(path, ".gitignore")
+    
+    if os.path.exists(env_path):
+        if os.path.isfile(env_path):
+            return True
+    return False
 
 def excluir_driver():
     if 'driver' in st.session_state:
@@ -53,9 +64,11 @@ def excluir_driver():
 
 def sair():
     with st.spinner('Redirecionando...'):
+        os.rmdir(st.session_state.temp_dir)
         excluir_driver()
         st.cache_resource.clear()
         st.cache_data.clear()
+        st.session_state.clear()
         st.switch_page(modulos[0][1])
 
 def voltar_inicio():

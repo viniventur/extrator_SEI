@@ -132,7 +132,7 @@ def main():
                     # Criação do DataFrame
                     processos_tratados = [linha.strip() for linha in processos_tratados.splitlines() if linha.strip()]
                 else:
-                    st.error("Por favor, insira os números de processos para tratamento.")
+                    st.error("Por favor, insira os números de processos para análise.")
                     return
 
 

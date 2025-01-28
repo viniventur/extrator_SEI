@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import tempfile
 from openpyxl.utils import get_column_letter
 import streamlit as st
 from dotenv import load_dotenv, dotenv_values
@@ -11,6 +12,9 @@ from utils.funcoes_auxiliares import *
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -63,15 +67,76 @@ def raspagem_docs(processo, unidade):
         for element in elements[:-1]:
             element.click()
             time.sleep(tempo_curto)
-        
+
+            # Aguarda o desaparecimento do elemento com ID que começa com "spanAGUARDE"
+            try:
+                WebDriverWait(driver, 30).until(
+                    EC.invisibility_of_element((By.XPATH, "//*[starts-with(@id, 'spanAGUARDE')]"))
+                )
+            except:
+                st.error("O SEI não respondeu a tempo. Tente novamente.")
+                
         document_elements = driver.find_elements(By.XPATH, "//span[starts-with(@id, 'span') and not(contains(@id, 'PASTA'))]")
 
-        # Extrair os textos (nomes dos documentos)
-        document_names = [element.text for element in document_elements if element.text]  # Ignora spans vazios
-        document_names.pop(0)
+        # Criar um dicionário com o texto (nome do documento) como chave e o elemento como valor
+        documents_dict = {
+            element.text: element
+            for element in document_elements if element.text  # Ignora spans vazios
+        }
 
-        return document_names
+        # Remove a primeira entrada do dicionário (se necessário)
+        if documents_dict:
+            first_key = next(iter(documents_dict))  # Obtém a primeira chave
+            del documents_dict[first_key] # deletar o num de processo
+
+        return documents_dict
 
     except Exception as e:
         st.error(f"Erro durante a obtenção dos documentos do processo: {e}")
+
+def baixar_docs_analise(doc_elemento):
+
+    driver = st.session_state.driver
+
+    # Selecionar o documento
+    mudar_iframe('arvore')
+    doc_elemento.click()
+
+    # Clicar para imprimir
+    mudar_iframe('visualizacao')
+
+    imprimir = 'inicial'
+
+    try:
+        try:
+            # Verifica se o primeiro elemento existe
+            elemento_imprimir = driver.find_element(By.XPATH, '//img[@alt="Imprimir Web"]')
+            elemento_imprimir.click()
+            imprimir = True
+
+        except NoSuchElementException:
+            try:
+                # Caso o primeiro elemento não exista, verifica o segundo
+                elemento_informacao = driver.find_element(By.XPATH, '//*[@id="divInformacao"]/a')
+                
+                # Verifica se o texto do elemento contém "aqui"
+                if "aqui" in elemento_informacao.text.lower():  # Ignora case sensitivity
+                    elemento_informacao.click()
+                    imprimir = False
+
+                else:
+                    st.error("Erro ao baixar documento (anexo).")
+                    return
+            except NoSuchElementException:
+                # Caso nenhum dos elementos seja encontrado
+                st.error("Erro ao baixar documento.")
+
+            # Baixar o documento se nao for anexo
+            if imprimir:
+                # configuracao de download
+                select_element = driver.find_element('xpath', '//*[@id="destinationSelect"]//print-preview-settings-section/div/select')
+                select_element.send_keys('Save as PDF/local/')
+
+    except Exception as e:
+        st.error(f'Erro ao baixar documento (aba): {e}')
 

@@ -22,6 +22,20 @@ if 'driver' not in st.session_state:
     st.cache_resource.clear()
     st.switch_page(modulos[0][1])
 
+# Define o estado inicial para "docs_carregados" (se a lista foi carregada)
+if "docs_carregados" not in st.session_state:
+    st.session_state["docs_carregados"] = False  # Inicialmente, não carregado
+
+# Função para buscar documentos
+def botao_docs():
+    st.session_state["docs_verificacao"] = True
+    st.session_state["docs_carregados"] = False
+
+# resetar botoes
+def reset_botao_docs():
+    st.session_state["docs_verificacao"] = False
+    st.session_state["docs_carregados"] = False
+
 st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidade visual/OGP/logo-ogp-favicon.png')
 
 if is_local():
@@ -41,7 +55,10 @@ else:
 
 st.markdown(hide_style, unsafe_allow_html=True)
 
+# Função principal
 def main():
+    if st.session_state.pag != 'analise_doc':
+        reset_botao_docs()
 
     st.session_state.pag = 'analise_doc'
 
@@ -56,11 +73,11 @@ def main():
         default_value = ""  # Define o valor padrão
         st.session_state.limpar_input = False  # Reseta a flag
     else:
-        default_value = st.session_state.get("processos_input", "")
+        default_value = st.session_state.get("processo_input", "")
 
+    # Exibir cabeçalho e logotipo
     logo_path_CGE_OGP = 'src/assets/Identidade visual/logo_CGE_OGP_transp.png'
     logo_base64_CGE_OGP = get_image_as_base64(logo_path_CGE_OGP)
-
 
     st.markdown(
         f"""
@@ -71,70 +88,95 @@ def main():
         unsafe_allow_html=True
     )
 
-
     st.markdown("<h1 style='text-align: center;'>Análise de Documentos</h1>", unsafe_allow_html=True)
-
     st.markdown("<h1 style='text-align: center;'>🚧 EM CONSTRUÇÃO</h1>", unsafe_allow_html=True)
 
+    # Dividindo os botões em duas colunas
+    col1, col2 = st.columns([1, 1])
 
-    # # Dividindo os botões em duas colunas
-    # col1, col2 = st.columns([1, 1])
+    with col1:
+        if st.button(":material/logout: Sair", key='sair', help='Clique para deslogar', use_container_width=True):
+            sair()
+    with col2:
+        if st.button(":material/keyboard_return: Voltar ao Início", key='inicio', help='Clique para ir ao início', use_container_width=True):
+            voltar_inicio()
 
-    # with col1:
-    #     if st.button(":material/logout: Sair", key='sair', help='Clique para deslogar', use_container_width=True):
-    #         sair()
-    # with col2:
-    #     if st.button(":material/keyboard_return: Voltar ao Início", key='inicio', help='Clique para ir ao início', use_container_width=True):
-    #         voltar_inicio()
+    # Lista de seleção
+    try:
+        lista_unidades = st.session_state.unidades_usuario
+    except Exception as e:
+        st.error(f'Erro ao obter as unidades disponíveis! Realize Login novamente.')
+        sair()
 
-    # # Lista de seleção
-    # try:
-    #     lista_unidades = st.session_state.unidades_usuario
-    # except Exception as e:
-    #     st.error(f'Erro ao obter as unidades disponíveis! Realize Login novamente.')
-    #     sair()
+    unidade = st.selectbox('Selecione a Unidade', lista_unidades)
 
-    # unidade = st.selectbox('Selecione a Unidade', lista_unidades)
+    # Text area
+    processo = st.text_input('Informe o Processo', value=default_value, key="processo_input", on_change=reset_botao_docs)
 
-    # # Text area
-    # processo = st.text_input('Informe o Processo', value=default_value, key="processo_input")
+    # Define o estado inicial para o botão de busca e a verificacao docs
+    if "docs_verificacao" not in st.session_state:
+        st.session_state["docs_verificacao"] = False
 
-    # # Dividindo os botões em duas colunas
-    # col1, col2 = st.columns([1, 1])
+    # Dividindo os botões em duas colunas
+    col1, col2 = st.columns([1, 1])
 
-    # with col1:
-    #     buscar = st.button(":material/search: Buscar documentos disponíveis")
+    with col1:
+        buscar = st.button(":material/search: Buscar documentos disponíveis", on_click=botao_docs)
 
-    # with col2:
-    #     limpar = st.button(":material/delete_forever: Limpar")
+    with col2:
+        limpar = st.button(":material/delete_forever: Limpar")
 
-    # # Lógica do botão "Limpar"
-    # if limpar:
-    #     st.session_state.limpar_input = True  # Ativa a flag para limpar
-    #     st.rerun()  # Recarrega a interface
+    # Lógica do botão "Limpar"
+    if limpar:
+        st.session_state.limpar_input = True  # Ativa a flag para limpar
+        st.session_state["docs_carregados"] = False
+        st.session_state["docs_verificacao"] = False
+        st.rerun()  # Recarrega a interface para limpar
+
+    # Se a busca foi realizada e `docs_verificacao` está ativo
+    if st.session_state["docs_verificacao"]:
+        if not processo:
+            st.error('Por favor, insira os números de processos para análise.')
+            return
+
+        # Executa a busca novamente ao clicar no botão
+        if not st.session_state["docs_carregados"]:
+            with st.spinner("Buscando documentos disponíveis..."):
+                st.session_state["docs_dict"] = raspagem_docs(processo, unidade)
+                st.session_state["docs"] = st.session_state["docs_dict"].keys()
+                st.session_state["docs_carregados"] = True
+
+        # Renderizar multiselect com a lista carregada
+        documentos_selecionados = st.multiselect(
+            'Selecione os Tipos de Documentos',
+            st.session_state.get("docs", []),  # Usa os documentos carregados no estado
+            max_selections=5,
+            placeholder="Tipos de documentos"
+        )
+
+        st.write("Documentos selecionados:", documentos_selecionados)
+
+        if st.button('Analisar documentos selecionados'):
+
+            if not documentos_selecionados:
+                st.error('Selecione documentos para analisar.')
+
+            for doc in documentos_selecionados:
+                st.write(doc)
+                st.write(st.session_state["docs_dict"][doc])
+                doc_elemento = st.session_state["docs_dict"][doc]
+                baixar_docs_analise(doc_elemento)
 
 
-    # docs = []
+            st.write(os.listdir(st.session_state.temp_dir))
+            st.write(st.session_state.temp_dir)
 
-    # # Lógica do botão "Buscar"
-    # if buscar:
-    #     docs = (raspagem_docs(processo, unidade))  # Atualiza `docs` com os documentos encontrados
-    #     #st.session_state.docs_verificacao = True
 
-    #     st.write(docs)
 
-    # if st.session_state.docs_verificacao:
+    
 
-    #     # Renderizar o multiselect com a variável `docs`
-    #     documentos_selecionados = st.multiselect(
-    #         'Selecione os Tipos de Documentos',
-    #         docs,  # `docs` será uma lista vazia se o botão "Buscar" não for clicado
-    #         max_selections=10,
-    #         placeholder="Tipos de documentos"
-    #     )
+        #st.write(docs)
 
-    # if st.button('teste'):
-    #     st.write(documentos_selecionados)
 
 
 
