@@ -11,7 +11,9 @@ from scraping.analise_docs import *
 from scraping.extracao_unidade import *
 from scraping.scrapping_processos import *
 from sidebar import *
+
 import base64
+from docling.document_converter import DocumentConverter
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -57,6 +59,12 @@ st.markdown(hide_style, unsafe_allow_html=True)
 
 # Função principal
 def main():
+
+    # Tempos para execução
+    tempo_curto = 0.5
+    tempo_medio = 1
+    tempo_longo = 1.5
+
     if st.session_state.pag != 'analise_doc':
         reset_botao_docs()
 
@@ -161,42 +169,54 @@ def main():
             if not documentos_selecionados:
                 st.error('Selecione documentos para analisar.')
 
-            for doc in documentos_selecionados:
-                st.write(doc)
-                st.write(st.session_state["docs_dict"][doc])
-                doc_elemento = st.session_state["docs_dict"][doc]
-                baixar_docs_analise(doc_elemento)
+            # Baixar os arquivos
+            with st.spinner('Baixando os arquivos...'):
 
 
-            st.write(os.listdir(st.session_state.temp_dir))
-            st.write(st.session_state.temp_dir)
+                # Remove os arquivos da pasta temporaria
+                for file in os.listdir(st.session_state.temp_dir):
+                    os.remove(os.path.join(st.session_state.temp_dir, file))
+
+                for doc in documentos_selecionados:
+                    st.write(doc)
+                    st.write(st.session_state["docs_dict"][doc])
+                    doc_elemento = st.session_state["docs_dict"][doc]
 
 
+                    baixar_docs_analise(doc_elemento, st.session_state.temp_dir)
+                    time.sleep(tempo_longo+3)
 
-    
+                # Verificar se a quantidade de arquivos na pasta é igual à quantidade de documentos selecionados
+                arquivos_na_pasta = [f for f in os.listdir(st.session_state.temp_dir)]
+                st.write(f"Arquivos na pasta: {len(arquivos_na_pasta)} de {len(documentos_selecionados)} esperados.")
 
-        #st.write(docs)
+                if len(arquivos_na_pasta) == len(documentos_selecionados):
+                    st.success("Todos os arquivos foram baixados com sucesso!")
+                    #break
+                else:
+                    st.warning("Nem todos os documentos foram baixados. Tentando novamente...")
+                    time.sleep(tempo_longo+1)  # Pausa antes de tentar novamente
 
+                # Liste todos os arquivos no diretório
+                arquivos = [f for f in os.listdir(st.session_state.temp_dir) if f.endswith(".pdf")]
+            
+                st.write(os.listdir(st.session_state.temp_dir))
+                st.write(st.session_state.temp_dir)
 
+                # =============================================
+                # PROCESSO DE LEITURA - DOCLING
+                # =============================================
 
+                for arquivo in arquivos:
+                    pdf_path = os.path.join(st.session_state.temp_dir, arquivo)
+                    st.write(pdf_path)
 
-    
+                    # Ler os arquivos - docling
+                    st.write(pdf_to_mrkd(pdf_path))
 
-        # if lista_processos:
-        #     with st.spinner('Buscando dados, aguarde...'):
-        #         resultado, total_linhas, linhas_validas = tratar_processos_input(lista_processos)
-
-        #         # Criação do DataFrame
-        #         resultado = [linha.strip() for linha in resultado.splitlines() if linha.strip()]
-        #         df_processos = pd.DataFrame({"Processos": resultado})
-        #         df_processos.drop_duplicates(subset="Processos", inplace=True)
-
-        #         # Output
-        #         with st.container():
-        #             st.subheader("Tabela de Processos:")
-        #             buscar_dados_andamento(unidade, df_processos)
-        # else:
-        #     st.error("Por favor, insira os números de processos para tratamento.")
+                # =============================================
+                # PROCESSAMENTO COM IA
+                # =============================================
 
 
 

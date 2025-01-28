@@ -21,6 +21,7 @@ warnings.filterwarnings('ignore')
 import time
 from datetime import datetime
 from io import BytesIO
+from docling.document_converter import DocumentConverter
 import re
 
 
@@ -94,7 +95,7 @@ def raspagem_docs(processo, unidade):
     except Exception as e:
         st.error(f"Erro durante a obtenção dos documentos do processo: {e}")
 
-def baixar_docs_analise(doc_elemento):
+def baixar_docs_analise(doc_elemento, diretorio):
 
     driver = st.session_state.driver
 
@@ -139,4 +140,14 @@ def baixar_docs_analise(doc_elemento):
 
     except Exception as e:
         st.error(f'Erro ao baixar documento (aba): {e}')
+
+
+def pdf_to_mrkd(pdf_path):
+
+    # Ler os arquivos
+    source = pdf_path 
+    converter = DocumentConverter()
+    result = converter.convert(source)
+    return result.document.export_to_markdown()
+
 
