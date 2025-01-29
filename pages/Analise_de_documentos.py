@@ -109,6 +109,14 @@ def main():
         if st.button(":material/keyboard_return: Voltar ao Início", key='inicio', help='Clique para ir ao início', use_container_width=True):
             voltar_inicio()
 
+
+    st.write(os.listdir(st.session_state.temp_dir))
+    st.write(st.session_state.temp_dir)
+    try:
+        st.write(os.listdir('/tmp/'))
+    except Exception as e:
+        st.write(e)
+
     # Lista de seleção
     try:
         lista_unidades = st.session_state.unidades_usuario
