@@ -108,34 +108,13 @@ def baixar_docs_analise(doc_elemento, temp_dir):
     # Clicar para imprimir
     mudar_iframe('visualizacao')
 
-    imprimir = 'inicial'
-
     try:
         try:
             # Verifica se o primeiro elemento existe
             elemento_imprimir = driver.find_element(By.XPATH, '//img[@alt="Imprimir Web"]')
+            time.sleep(1)
             elemento_imprimir.click()
-            imprimir = True
-            
-        except NoSuchElementException:
-            try:
-                # Caso o primeiro elemento não exista, verifica o segundo
-                elemento_informacao = driver.find_element(By.XPATH, '//*[@id="divInformacao"]/a')
-                
-                # Verifica se o texto do elemento contém "aqui"
-                if "aqui" in elemento_informacao.text.lower():  # Ignora case sensitivity
-                    elemento_informacao.click()
-                    imprimir = False
-
-                else:
-                    st.error("Erro ao baixar documento (anexo).")
-                    return
-            except NoSuchElementException:
-                # Caso nenhum dos elementos seja encontrado
-                st.error("Erro ao baixar documento.")
-
-        # Baixar o documento se nao for anexo
-        if imprimir:
+            # Baixar o documento se nao for anexo
             try:
                 time.sleep(3)
                 # pegar arquivo no download de PDFs imprimidos
@@ -150,7 +129,7 @@ def baixar_docs_analise(doc_elemento, temp_dir):
                     print("Nenhum arquivo encontrado na pasta.")
                     return None
                 
-                st.write(arquivos)
+                st.write(f'arquivos: {arquivos}')
                 st.write('teste')
 
                 # Encontrar o arquivo baixado
@@ -166,6 +145,22 @@ def baixar_docs_analise(doc_elemento, temp_dir):
                 os.remove(arquivo_escolhido)  # Remove arquivos
             except Exception as e:
                 st.error(f'Erro ao baixar documento (documento SEI): {e}')
+                
+        except NoSuchElementException:
+            try:
+                # Caso o primeiro elemento não exista, verifica o segundo
+                elemento_informacao = driver.find_element(By.XPATH, '//*[@id="divInformacao"]/a')
+                
+                # Verifica se o texto do elemento contém "aqui"
+                if "aqui" in elemento_informacao.text.lower():  # Ignora case sensitivity
+                    elemento_informacao.click()
+
+                else:
+                    st.error("Erro ao baixar documento (anexo).")
+                    return
+            except NoSuchElementException:
+                # Caso nenhum dos elementos seja encontrado
+                st.error("Erro ao baixar documento.")
 
 
     except Exception as e:
