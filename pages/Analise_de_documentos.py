@@ -120,6 +120,7 @@ def main():
 
     try:
         st.write(os.listdir('/tmp/'))
+        st.write(os.listdir(st.session_state.diretorio_download))
     except Exception as e:
         st.write(e)
 
@@ -202,7 +203,7 @@ def main():
                         baixar_docs_analise(doc_elemento, temp_dir)
                         time.sleep(tempo_longo+3)
 
-                        
+
                     st.write(st.session_state.diretorio_download)
                     st.write(os.listdir(temp_dir))
                     # Verificar se a quantidade de arquivos na pasta é igual à quantidade de documentos selecionados
