@@ -145,7 +145,7 @@ def baixar_docs_analise(doc_elemento, temp_dir):
 
 
                 # Excluir o arquivo na pasta temporaria do diretorio
-                os.remove(arquivo_escolhido)  # Remove arquivos
+                #os.remove(arquivo_escolhido)  # Remove arquivos
             except Exception as e:
                 st.error(f'Erro ao baixar documento (documento SEI): {e}')
                 
