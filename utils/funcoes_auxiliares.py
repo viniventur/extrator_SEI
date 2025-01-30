@@ -43,6 +43,30 @@ modulos = modulos()
 def is_local(path='.'):
     return "IS_LOCAL" in env
 
+
+# Criar pastas no diretorio temp ou na pasta temporaria local
+def criar_pasta(diretorio_x, nome_pasta):
+    """Cria uma pasta com o nome especificado dentro do diretório_x."""
+    # Caminho completo da nova pasta
+    caminho_pasta = os.path.join(diretorio_x, nome_pasta)
+
+    try:
+        # Verifica se o diretório base existe
+        if not os.path.exists(diretorio_x):
+            st.error(f"Erro: O diretório '{diretorio_x}' não existe.")
+            return None
+
+        # Cria a pasta se ela não existir
+        if not os.path.exists(caminho_pasta):
+            os.makedirs(caminho_pasta)
+
+        return caminho_pasta
+
+    except Exception as e:
+        print(f"Erro ao criar a pasta: {str(e)}")
+        return None
+
+
 def excluir_driver():
     if 'driver' in st.session_state:
         try:
@@ -53,7 +77,12 @@ def excluir_driver():
 
 def sair():
     with st.spinner('Redirecionando...'):
-        os.rmdir(st.session_state.temp_dir)
+        # excluir os arquivos remanscente de outras sessoes na pasta temporaria
+        if 'diretorio_download' in st.session_state:
+            for item in os.listdir(st.session_state.diretorio_download):
+                item_path = os.path.join(st.session_state.diretorio_download, item)
+                if os.path.isfile(item_path):
+                    os.remove(item_path)  # Remove arquivos
         excluir_driver()
         st.cache_resource.clear()
         st.cache_data.clear()

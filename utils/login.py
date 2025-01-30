@@ -52,6 +52,8 @@ def login_sei(df_usuarios, historico_acesso, usuario_sei, senha_sei, orgao_sei):
 
         with st.spinner('Verificando acesso do CPF...'):
 
+            st.session_state.usuario_sei = usuario_sei
+
             driver = chrome()
 
             st.session_state.driver = driver

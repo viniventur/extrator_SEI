@@ -83,7 +83,7 @@ def main():
                  :warning: As senhas fornecidas não são armazenadas, servindo apenas para o sistema logar no SEI e carregar as informações.                 
                  
                  ''')
-
+        
     # Input para o usuário
     usuario = st.text_input('Usuário SEI:', placeholder="Digite seu usuário do SEI.")
 

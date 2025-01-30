@@ -95,7 +95,9 @@ def raspagem_docs(processo, unidade):
     except Exception as e:
         st.error(f"Erro durante a obtenção dos documentos do processo: {e}")
 
-def baixar_docs_analise(doc_elemento, diretorio):
+def baixar_docs_analise(doc_elemento, temp_dir):
+
+    update_download_directory(temp_dir)
 
     driver = st.session_state.driver
 
@@ -114,7 +116,7 @@ def baixar_docs_analise(doc_elemento, diretorio):
             elemento_imprimir = driver.find_element(By.XPATH, '//img[@alt="Imprimir Web"]')
             elemento_imprimir.click()
             imprimir = True
-
+            
         except NoSuchElementException:
             try:
                 # Caso o primeiro elemento não exista, verifica o segundo
@@ -132,11 +134,39 @@ def baixar_docs_analise(doc_elemento, diretorio):
                 # Caso nenhum dos elementos seja encontrado
                 st.error("Erro ao baixar documento.")
 
-            # Baixar o documento se nao for anexo
-            if imprimir:
-                # configuracao de download
-                select_element = driver.find_element('xpath', '//*[@id="destinationSelect"]//print-preview-settings-section/div/select')
-                select_element.send_keys('Save as PDF/local/')
+        # Baixar o documento se nao for anexo
+        if imprimir:
+            try:
+                time.sleep(3)
+                # pegar arquivo no download de PDFs imprimidos
+                if not os.path.exists(st.session_state.diretorio_download):
+                    st.error(f"Erro: O diretório '{st.session_state.diretorio_download}' não existe.")
+                    return
+
+                # Pegando o primeiro arquivo do diretório
+                arquivos = [f for f in os.listdir(st.session_state.diretorio_download)]
+
+                if not arquivos:
+                    print("Nenhum arquivo encontrado na pasta.")
+                    return None
+                
+                st.write(arquivos)
+                st.write('teste')
+
+                # Encontrar o arquivo baixado
+                arquivo_escolhido = os.path.join(st.session_state.diretorio_download, arquivos[0])
+                st.write(f"Arquivo encontrado: {arquivo_escolhido}")
+                st.write(os.path.isfile(arquivo_escolhido))
+
+                # Abrir o arquivo e baixar (necessita apenas abrir)
+                driver.get(arquivo_escolhido)
+
+
+                # Excluir o arquivo na pasta temporaria do diretorio
+                os.remove(arquivo_escolhido)  # Remove arquivos
+            except Exception as e:
+                st.error(f'Erro ao baixar documento (documento SEI): {e}')
+
 
     except Exception as e:
         st.error(f'Erro ao baixar documento (aba): {e}')

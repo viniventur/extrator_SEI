@@ -1,5 +1,9 @@
 import pandas as pd
 import streamlit as st
+import shutil
+import os
+from path import Path
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from st_pages import add_page_title, get_nav_from_toml, _get_pages_from_config
 from dotenv import dotenv_values
 env = dotenv_values('.env')
@@ -110,8 +114,10 @@ def main():
             voltar_inicio()
 
 
-    st.write(os.listdir(st.session_state.temp_dir))
-    st.write(st.session_state.temp_dir)
+    # st.write(os.listdir(st.session_state.temp_dir))
+    # st.write(st.session_state.temp_dir)
+
+
     try:
         st.write(os.listdir('/tmp/'))
     except Exception as e:
@@ -180,51 +186,60 @@ def main():
             # Baixar os arquivos
             with st.spinner('Baixando os arquivos...'):
 
+                with TemporaryDirectory() as temp_dir:
 
-                # Remove os arquivos da pasta temporaria
-                for file in os.listdir(st.session_state.temp_dir):
-                    os.remove(os.path.join(st.session_state.temp_dir, file))
-
-                for doc in documentos_selecionados:
-                    st.write(doc)
-                    st.write(st.session_state["docs_dict"][doc])
-                    doc_elemento = st.session_state["docs_dict"][doc]
+                    st.write(temp_dir)
+                    st.session_state.temp_dir = temp_dir
+                    st.write(st.session_state.temp_dir)
 
 
-                    baixar_docs_analise(doc_elemento, st.session_state.temp_dir)
-                    time.sleep(tempo_longo+3)
+                    for doc in documentos_selecionados:
+                        st.write(doc)
+                        st.write(st.session_state["docs_dict"][doc])
+                        doc_elemento = st.session_state["docs_dict"][doc]
 
-                # Verificar se a quantidade de arquivos na pasta é igual à quantidade de documentos selecionados
-                arquivos_na_pasta = [f for f in os.listdir(st.session_state.temp_dir)]
-                st.write(f"Arquivos na pasta: {len(arquivos_na_pasta)} de {len(documentos_selecionados)} esperados.")
 
-                if len(arquivos_na_pasta) == len(documentos_selecionados):
-                    st.success("Todos os arquivos foram baixados com sucesso!")
-                    #break
-                else:
-                    st.warning("Nem todos os documentos foram baixados. Tentando novamente...")
-                    time.sleep(tempo_longo+1)  # Pausa antes de tentar novamente
+                        baixar_docs_analise(doc_elemento, temp_dir)
+                        time.sleep(tempo_longo+3)
 
-                # Liste todos os arquivos no diretório
-                arquivos = [f for f in os.listdir(st.session_state.temp_dir) if f.endswith(".pdf")]
+                        
+                    st.write(st.session_state.diretorio_download)
+                    st.write(os.listdir(temp_dir))
+                    # Verificar se a quantidade de arquivos na pasta é igual à quantidade de documentos selecionados
+                    arquivos_na_pasta = [f for f in os.listdir(Path(temp_dir))]
+                    st.write(f"Arquivos na pasta: {len(arquivos_na_pasta)} de {len(documentos_selecionados)} esperados.")
+
+
+
+                    time.sleep(10)
+
+                # if len(arquivos_na_pasta) == len(documentos_selecionados):
+                #     st.success("Todos os arquivos foram baixados com sucesso!")
+                #     #break
+                # else:
+                #     st.warning("Nem todos os documentos foram baixados. Tentando novamente...")
+                #     time.sleep(tempo_longo+1)  # Pausa antes de tentar novamente
+
+                # # Liste todos os arquivos no diretório
+                # arquivos = [f for f in os.listdir(st.session_state.temp_dir) if f.endswith(".pdf")]
             
-                st.write(os.listdir(st.session_state.temp_dir))
-                st.write(st.session_state.temp_dir)
+                # st.write(os.listdir(st.session_state.temp_dir))
+                # st.write(st.session_state.temp_dir)
 
-                # =============================================
-                # PROCESSO DE LEITURA - DOCLING
-                # =============================================
+                # # =============================================
+                # # PROCESSO DE LEITURA - DOCLING
+                # # =============================================
 
-                for arquivo in arquivos:
-                    pdf_path = os.path.join(st.session_state.temp_dir, arquivo)
-                    st.write(pdf_path)
+                # for arquivo in arquivos:
+                #     pdf_path = os.path.join(st.session_state.temp_dir, arquivo)
+                #     st.write(pdf_path)
 
-                    # Ler os arquivos - docling
-                    st.write(pdf_to_mrkd(pdf_path))
+                #     # Ler os arquivos - docling
+                #     st.write(pdf_to_mrkd(pdf_path))
 
-                # =============================================
-                # PROCESSAMENTO COM IA
-                # =============================================
+                # # =============================================
+                # # PROCESSAMENTO COM IA
+                # # =============================================
 
 
 
