@@ -110,6 +110,9 @@ def main():
                 </div>        
                 ''',
             unsafe_allow_html=True)
+    
+    if st.button(":material/logout: Sair", key='sair', help='Clique para deslogar', use_container_width=True):
+        sair()
         
     nome_modulos, nome_links, links_modulos = modulos_menu()
 
