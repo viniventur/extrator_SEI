@@ -111,11 +111,14 @@ def baixar_docs_analise(doc_elemento, temp_dir):
     try:
         try:
             # Verifica se o primeiro elemento existe
+            st.write('teste1')
             elemento_imprimir = driver.find_element(By.XPATH, '//img[@alt="Imprimir Web"]')
-            time.sleep(1)
+            time.sleep(5)
             elemento_imprimir.click()
+            st.write('teste2')
             # Baixar o documento se nao for anexo
             try:
+                st.write('teste4')
                 time.sleep(3)
                 # pegar arquivo no download de PDFs imprimidos
                 if not os.path.exists(st.session_state.diretorio_download):
