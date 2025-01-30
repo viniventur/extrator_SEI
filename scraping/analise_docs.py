@@ -129,7 +129,7 @@ def baixar_docs_analise(doc_elemento, temp_dir):
                 arquivos = [f for f in os.listdir(st.session_state.diretorio_download)]
 
                 if not arquivos:
-                    print("Nenhum arquivo encontrado na pasta.")
+                    st.error("Nenhum arquivo encontrado na pasta.")
                     return None
                 
                 st.write(f'arquivos: {arquivos}')
