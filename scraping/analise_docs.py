@@ -85,89 +85,107 @@ def raspagem_docs(processo, unidade):
             for element in document_elements if element.text  # Ignora spans vazios
         }
 
-        # Remove a primeira entrada do dicionário (se necessário)
-        if documents_dict:
-            first_key = next(iter(documents_dict))  # Obtém a primeira chave
-            del documents_dict[first_key] # deletar o num de processo
+        # # Remove a primeira entrada do dicionário (se necessário)
+        # if documents_dict:
+        #     proc_chave = next(iter(documents_dict))  # Obtém a primeira chave
+        #     proc_element = documents_dict[proc_element]
+        #     del documents_dict[proc_element] # deletar o num de processo
 
         return documents_dict
 
     except Exception as e:
         st.error(f"Erro durante a obtenção dos documentos do processo: {e}")
 
-def baixar_docs_analise(doc_elemento, temp_dir):
 
+def baixar_docs_analise(docs_selecionados, temp_dir):
+
+    # Tempos para execução
+    tempo_curto = 0.5
+    tempo_medio = 1
+    tempo_longo = 1.5
+                        
     update_download_directory(temp_dir)
 
     driver = st.session_state.driver
-
-    # Selecionar o documento
-    mudar_iframe('arvore')
-    doc_elemento.click()
-
+    driver.refresh() #voltar a pagina inicial do processo
+    time.sleep(tempo_medio)
+   
     # Clicar para imprimir
     mudar_iframe('visualizacao')
 
-    try:
-        try:
-            # Verifica se o primeiro elemento existe
-            st.write('teste1')
-            elemento_imprimir = driver.find_element(By.XPATH, '//img[@alt="Imprimir Web"]')
-            elemento_imprimir.click()
-            time.sleep(5)
-            st.write('teste2')
-            # Baixar o documento se nao for anexo
+    # Esperar até que o botão "Gerar Arquivo PDF do Processo" esteja visível e clicável
+    pdf_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '//img[@alt="Gerar Arquivo PDF do Processo"]'))
+    )
+    pdf_button.click()
+
+    # Esperar até que o checkbox "Selecionar Tudo" esteja presente na página
+    checkbox_selecionar_tudo = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, '//*[@id="imgInfraCheck"]'))
+    )
+    for _ in range(2):  # Melhorando a legibilidade do loop
+        checkbox_selecionar_tudo.click()
+
+    # Localizar a tabela de documentos
+    tabela_xpath = '//*[@id="tblDocumentos"]/tbody/tr'
+    
+    # Encontrar todas as linhas da tabela
+    linhas = driver.find_elements(By.XPATH, tabela_xpath)
+    total_linhas = len(linhas)  # Obtém o número real de linhas
+
+    st.write(f"Total de linhas encontradas: {total_linhas}")
+
+    # Percorrer os documentos selecionados
+    for doc in docs_selecionados:
+        
+        # Filtra apenas o número do documento
+        match = re.search(r'\((\d+)\)$', doc)  # Agora garantindo que o número está no final da string
+        if match:
+            numero_doc = match.group(1)
+            st.write(f"Procurando documento: {numero_doc}")
+        else:
+            st.error(f"Número de documento inválido em: {doc}")
+            continue  # Pula para o próximo documento
+
+        # Percorre a tabela, garantindo que não ultrapasse o número real de linhas
+        for index in range(2, total_linhas + 1):  # Agora garantimos que os índices são válidos
+            
             try:
-                st.write('teste4')
-                time.sleep(3)
-                # pegar arquivo no download de PDFs imprimidos
-                if not os.path.exists(st.session_state.diretorio_download):
-                    st.error(f"Erro: O diretório '{st.session_state.diretorio_download}' não existe.")
-                    return
+                # Construindo dinamicamente o XPath da célula que contém o número SEI
+                num_xpath = f'//*[@id="tblDocumentos"]/tbody/tr[{index}]/td[2]/a'
+                elementos = driver.find_elements(By.XPATH, num_xpath)  # Retorna uma lista
 
-                # Pegando o primeiro arquivo do diretório
-                arquivos = [f for f in os.listdir(st.session_state.diretorio_download)]
+                if not elementos:  # Se a lista estiver vazia, o elemento não existe
+                    st.warning(f"Elemento {num_xpath} não encontrado, pulando para o próximo.")
+                    continue  # Pula para o próximo índice
 
-                if not arquivos:
-                    st.error("Nenhum arquivo encontrado na pasta.")
-                    return None
-                
-                st.write(f'arquivos: {arquivos}')
-                st.write('teste')
+                numero_documento = elementos[0].text  # Pega o texto do primeiro elemento encontrado
 
-                # Encontrar o arquivo baixado
-                arquivo_escolhido = os.path.join(st.session_state.diretorio_download, arquivos[0])
-                st.write(f"Arquivo encontrado: {arquivo_escolhido}")
-                st.write(os.path.isfile(arquivo_escolhido))
+                # Verifica se o número do documento corresponde ao que estamos buscando
+                if numero_documento == numero_doc:
+                    checkbox_xpath = f'//*[@id="chkInfraItem{index - 2}"]'  # Ajuste para alinhar com os checkboxes
+                    checkbox = driver.find_element(By.XPATH, checkbox_xpath)
+                    
+                    # Verifica se o checkbox não está marcado antes de clicar
+                    if not checkbox.is_selected():
+                        checkbox.click()
+                        st.success(f"Checkbox do documento {numero_documento} marcado.")
+                    else:
+                        st.info(f"Checkbox do documento {numero_documento} já estava marcado.")
 
-                # Abrir o arquivo e baixar (necessita apenas abrir)
-                driver.get(arquivo_escolhido)
-
-
-                # Excluir o arquivo na pasta temporaria do diretorio
-                #os.remove(arquivo_escolhido)  # Remove arquivos
             except Exception as e:
-                st.error(f'Erro ao baixar documento (documento SEI): {e}')
-                
-        except NoSuchElementException:
-            try:
-                # Caso o primeiro elemento não exista, verifica o segundo
-                elemento_informacao = driver.find_element(By.XPATH, '//*[@id="divInformacao"]/a')
-                
-                # Verifica se o texto do elemento contém "aqui"
-                if "aqui" in elemento_informacao.text.lower():  # Ignora case sensitivity
-                    elemento_informacao.click()
+                st.error(f"Erro ao selecionar documento {numero_doc} na linha {index}: {e}")
 
-                else:
-                    st.error("Erro ao baixar documento (anexo).")
-                    return
-            except NoSuchElementException:
-                # Caso nenhum dos elementos seja encontrado
-                st.error("Erro ao baixar documento.")
-
-
+    # Baixar
+    try:
+        driver.find_element('xpath', '//*[@id="divInfraBarraComandosSuperior"]/button[1]').click()
+        mudar_iframe('default')
+        WebDriverWait(driver, 10).until(
+        EC.invisibility_of_element_located((By.XPATH, '//*[@id="spnInfraAviso"]'))
+        )
+        time.sleep(tempo_longo)
     except Exception as e:
-        st.error(f'Erro ao baixar documento (aba): {e}')
+        st.error(f"Erro baixar os documentos: {e}")
 
 
 def pdf_to_mrkd(pdf_path):

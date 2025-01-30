@@ -172,7 +172,7 @@ def main():
         # Renderizar multiselect com a lista carregada
         documentos_selecionados = st.multiselect(
             'Selecione os Tipos de Documentos',
-            st.session_state.get("docs", []),  # Usa os documentos carregados no estado
+            list(st.session_state["docs_dict"].keys())[1:],  # Usa os documentos carregados no estado
             max_selections=5,
             placeholder="Tipos de documentos"
         )
@@ -193,26 +193,18 @@ def main():
                     st.session_state.temp_dir = temp_dir
                     st.write(st.session_state.temp_dir)
 
-
-                    for doc in documentos_selecionados:
-                        st.write(doc)
-                        st.write(st.session_state["docs_dict"][doc])
-                        doc_elemento = st.session_state["docs_dict"][doc]
-
-
-                        baixar_docs_analise(doc_elemento, temp_dir)
-                        time.sleep(tempo_longo+3)
-
+                    # baixar documentos em um PDF único
+                    baixar_docs_analise(documentos_selecionados, st.session_state.temp_dir)
 
                     st.write(st.session_state.diretorio_download)
                     st.write(os.listdir(temp_dir))
                     # Verificar se a quantidade de arquivos na pasta é igual à quantidade de documentos selecionados
                     arquivos_na_pasta = [f for f in os.listdir(Path(temp_dir))]
-                    st.write(f"Arquivos na pasta: {len(arquivos_na_pasta)} de {len(documentos_selecionados)} esperados.")
+                    st.write(f"Arquivos na pasta: {len(arquivos_na_pasta)}")
 
 
 
-                    time.sleep(10)
+                    # time.sleep(10)
 
                 # if len(arquivos_na_pasta) == len(documentos_selecionados):
                 #     st.success("Todos os arquivos foram baixados com sucesso!")
