@@ -164,7 +164,7 @@ def main():
         documentos_selecionados = st.multiselect(
             'Selecione os Tipos de Documentos',
             list(st.session_state["docs_dict"].keys())[1:],  # Usa os documentos carregados no estado
-            max_selections=5,
+            max_selections=3,
             placeholder="Tipos de documentos"
         )
 
