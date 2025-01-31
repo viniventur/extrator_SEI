@@ -15,6 +15,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 
+from langchain_community.document_loaders import PyPDFLoader
+import pdfplumber
+from pdf2image import convert_from_path
+import pytesseract
+from docling.document_converter import DocumentConverter
+
 import warnings
 warnings.filterwarnings('ignore')
 import time
@@ -186,8 +192,7 @@ def baixar_docs_analise(docs_selecionados, temp_dir):
     except Exception as e:
         st.error(f"Erro baixar os documentos: {e}")
 
-
-def pdf_to_mrkd(pdf_path):
+def pdf_to_mrkd_docling(pdf_path):
 
     # Ler os arquivos
     source = pdf_path 
@@ -195,4 +200,8 @@ def pdf_to_mrkd(pdf_path):
     result = converter.convert(source)
     return result.document.export_to_markdown()
 
+def carregar_docs(pdf_path):
+    document_loader = PyPDFLoader(pdf_path)
+    pages = document_loader.load_and_split()
+    return pages
 

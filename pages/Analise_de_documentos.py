@@ -112,17 +112,6 @@ def main():
         if st.button(":material/keyboard_return: Voltar ao Início", key='inicio', help='Clique para ir ao início', use_container_width=True):
             voltar_inicio()
 
-
-    # st.write(os.listdir(st.session_state.temp_dir))
-    # st.write(st.session_state.temp_dir)
-
-
-    try:
-        st.write(os.listdir('/tmp/'))
-        st.write(os.listdir(st.session_state.diretorio_download))
-    except Exception as e:
-        st.write(e)
-
     # Lista de seleção
     try:
         lista_unidades = st.session_state.unidades_usuario
@@ -164,10 +153,13 @@ def main():
         # Executa a busca novamente ao clicar no botão
         if not st.session_state["docs_carregados"]:
             with st.spinner("Buscando documentos disponíveis..."):
-                st.session_state["docs_dict"] = raspagem_docs(processo, unidade)
-                st.session_state["docs"] = st.session_state["docs_dict"].keys()
-                st.session_state["docs_carregados"] = True
-
+                try:
+                    st.session_state["docs_dict"] = raspagem_docs(processo, unidade)
+                    st.session_state["docs"] = st.session_state["docs_dict"].keys()
+                    st.session_state["docs_carregados"] = True
+                except Exception as e:
+                    return  # Interrompe a execução
+                
         # Renderizar multiselect com a lista carregada
         documentos_selecionados = st.multiselect(
             'Selecione os Tipos de Documentos',
@@ -178,17 +170,19 @@ def main():
 
         st.write("Documentos selecionados:", documentos_selecionados)
 
-        if st.button('Analisar documentos selecionados'):
+        if st.button(':material/quick_reference_all: Analisar documentos selecionados'):
 
             if not documentos_selecionados:
                 st.error('Selecione documentos para analisar.')
 
-            # Baixar os arquivos
+            # =============================================
+            # BAIXANDO OS ARQUIVOS
+            # =============================================
+
             with st.spinner('Baixando os arquivos...'):
 
                 with TemporaryDirectory() as temp_dir:
 
-                    st.write(temp_dir)
                     st.session_state.temp_dir = temp_dir
                     st.write(st.session_state.temp_dir)
 
@@ -202,37 +196,28 @@ def main():
                     # Verificar se a quantidade de arquivos na pasta é igual à quantidade de documentos selecionados
                     arquivos_na_pasta = [f for f in os.listdir(Path(temp_dir))]
                     st.write(f"Arquivos na pasta: {len(arquivos_na_pasta)}")
-                    
 
-                    # time.sleep(10)
+                    # =============================================
+                    # PROCESSO DE LEITURA - DOCLING
+                    # =============================================
 
-                # if len(arquivos_na_pasta) == len(documentos_selecionados):
-                #     st.success("Todos os arquivos foram baixados com sucesso!")
-                #     #break
-                # else:
-                #     st.warning("Nem todos os documentos foram baixados. Tentando novamente...")
-                #     time.sleep(tempo_longo+1)  # Pausa antes de tentar novamente
+                    with st.spinner('Lendo os arquivos...'):
 
-                # # Liste todos os arquivos no diretório
-                # arquivos = [f for f in os.listdir(st.session_state.temp_dir) if f.endswith(".pdf")]
-            
-                # st.write(os.listdir(st.session_state.temp_dir))
-                # st.write(st.session_state.temp_dir)
+                        try:
 
-                # # =============================================
-                # # PROCESSO DE LEITURA - DOCLING
-                # # =============================================
+                            for arquivo in arquivos_na_pasta:
+                                pdf_path = os.path.join(st.session_state.temp_dir, arquivo)
+                                st.write(pdf_path)
 
-                # for arquivo in arquivos:
-                #     pdf_path = os.path.join(st.session_state.temp_dir, arquivo)
-                #     st.write(pdf_path)
+                                # Ler os arquivos - docling
+                                st.write(carregar_docs(pdf_path))
+                                st.write(carregar_docs(pdf_path)[0])
+                        except Exception as e:
+                            st.error(f'Erro ao ler arquivos: {e}')
 
-                #     # Ler os arquivos - docling
-                #     st.write(pdf_to_mrkd(pdf_path))
-
-                # # =============================================
-                # # PROCESSAMENTO COM IA
-                # # =============================================
+                    # =============================================
+                    # PROCESSAMENTO COM IA
+                    # =============================================
 
 
 
