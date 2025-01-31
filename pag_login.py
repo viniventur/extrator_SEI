@@ -95,9 +95,12 @@ def main():
 
     # Login
     if st.button(":material/login: Acessar"):
-        if orgao == lista_orgaos[0]:
-            st.error(f"Informe o órgão.")
-        else:
+
+        with st.spinner('Carregando...'):
+            if orgao == lista_orgaos[0]:
+                st.error(f"Informe o órgão.")
+                return
+       
             df_usuarios = df_usuarios_cpf()
             historico_acesso = df_historico_acesso()
             login_sei(df_usuarios, historico_acesso, usuario, senha, orgao)
