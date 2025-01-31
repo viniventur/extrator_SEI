@@ -195,13 +195,14 @@ def main():
                     # baixar documentos em um PDF único
                     baixar_docs_analise(documentos_selecionados, st.session_state.temp_dir)
 
+                    time.sleep(10)
+
                     st.write(st.session_state.diretorio_download)
                     st.write(os.listdir(temp_dir))
                     # Verificar se a quantidade de arquivos na pasta é igual à quantidade de documentos selecionados
                     arquivos_na_pasta = [f for f in os.listdir(Path(temp_dir))]
                     st.write(f"Arquivos na pasta: {len(arquivos_na_pasta)}")
-
-
+                    
 
                     # time.sleep(10)
 

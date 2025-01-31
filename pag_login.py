@@ -95,7 +95,6 @@ def main():
 
     # Login
     if st.button(":material/login: Acessar"):
-        st.write('Carregando...')
         if orgao == lista_orgaos[0]:
             st.error(f"Informe o órgão.")
         else:
