@@ -4,9 +4,7 @@ import streamlit as st
 from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
 
-from utils.config import is_local, modulos, voltar_inicio, data_hr_atual
-from utils.chrome_config import chrome
-from utils.conn_gdriver import upload_and_replace_file_drive
+from utils import *
 
 from scraping.extracao_unidade import *
 
@@ -118,7 +116,7 @@ def login_sei(df_usuarios, historico_acesso, usuario_sei, senha_sei, orgao_sei):
 
                     # Atualizacao ultimo acesso
                     df_usuarios.loc[df_usuarios['CPF'] == usuario_sei, 'ULTIMO_ACESSO'] = st.session_state.data_atualizacao_users
-                    upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
+                    upload_and_replace_file_drive('cpf_autorizados_extrator_sei', df_usuarios, folder_id=st.secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
 
 
                     # Base de logs de acesso se o acesso for online
@@ -132,7 +130,7 @@ def login_sei(df_usuarios, historico_acesso, usuario_sei, senha_sei, orgao_sei):
 
                     # Concatenar os dados ao DataFrame existente
                     df_acesso_atualizado = pd.concat([historico_acesso, dados_acesso_atual], ignore_index=True)
-                    upload_and_replace_file_drive('acessos_extrator_sei', df_acesso_atualizado, folder_id=secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
+                    upload_and_replace_file_drive('acessos_extrator_sei', df_acesso_atualizado, folder_id=st.secrets['google_credentials']['AUTORIZACAO_CPF_FOLDER_ID'])
 
                 # Redirecionamento
                 st.success(f'Olá, {nome}! Acesso efetuado! Redirecionando, aguarde...')

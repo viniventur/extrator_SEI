@@ -27,6 +27,3 @@ from utils.validacao_dados import (
     cont_dias,
     tratamento_verif_users
 )
-
-import streamlit as st
-secrets = st.secrets
