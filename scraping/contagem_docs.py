@@ -5,9 +5,8 @@ import streamlit as st
 from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
 
-from utils.chrome import *
+from utils import *
 from scraping.extracao_unidade import *
-from utils.funcoes_auxiliares import *
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys

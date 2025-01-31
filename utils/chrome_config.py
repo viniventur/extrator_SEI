@@ -1,10 +1,13 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from utils.funcoes_auxiliares import *
 import streamlit as st
 import tempfile
 import json
+import os
+
+from utils.config import is_local
+from utils.file_utils import criar_pasta_os
 
 
 def chrome():
@@ -30,7 +33,7 @@ def chrome():
                         os.remove(item_path)  # Remove arquivos
             else:
                 # cria a pasta
-                criar_pasta(diretorio, pasta_nome)
+                criar_pasta_os(diretorio, pasta_nome)
                 st.session_state.diretorio_download = caminho_pasta
         else:
             # verifica se ja existe e apaga
@@ -40,7 +43,7 @@ def chrome():
                 st.session_state.diretorio_download = caminho_pasta
             else:
                 # cria a pasta
-                criar_pasta(diretorio, pasta_nome)
+                criar_pasta_os(diretorio, pasta_nome)
                 st.session_state.diretorio_download = caminho_pasta
 
     chrome_options = Options()

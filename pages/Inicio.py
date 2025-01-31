@@ -2,17 +2,11 @@ import pandas as pd
 import os
 import streamlit as st
 from streamlit_option_menu import option_menu
-from utils.conn_gsheets import *
 from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
 
-from utils.login import *
-from utils.chrome import *
-from utils.funcoes_auxiliares import *
+from utils import *
 from sidebar import *
-
-from utils.conn_gdriver import *
-
 
 import warnings
 warnings.filterwarnings('ignore')

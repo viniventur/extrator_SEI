@@ -7,7 +7,7 @@ import toml
 import streamlit as st
 import pandas as pd
 
-from utils.funcoes_auxiliares import *
+from utils.config import data_hr_atual
 
 # Carregar configurações do arquivo TOML
 #config = toml.load('config.toml')

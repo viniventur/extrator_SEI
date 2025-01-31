@@ -4,9 +4,10 @@ import streamlit as st
 from dotenv import load_dotenv, dotenv_values
 env = dotenv_values('.env')
 
-from utils.chrome import *
-from utils.funcoes_auxiliares import *
-from utils.conn_gdriver import *
+from utils.config import is_local, modulos, voltar_inicio, data_hr_atual
+from utils.chrome_config import chrome
+from utils.conn_gdriver import upload_and_replace_file_drive
+
 from scraping.extracao_unidade import *
 
 from selenium.webdriver.support.ui import Select

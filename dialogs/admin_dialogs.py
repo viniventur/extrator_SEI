@@ -2,13 +2,12 @@ import pandas as pd
 import plotly.express as px
 import os
 import streamlit as st
-from utils.conn_gsheets import *
 from dotenv import load_dotenv, dotenv_values
-from utils.login import *
-from utils.chrome import *
-from utils.funcoes_auxiliares import *
+
+secrets = st.secrets
+
 from sidebar import *
-from utils.conn_gdriver import *
+
 import warnings
 import base64
 import time

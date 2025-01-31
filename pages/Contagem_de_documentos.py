@@ -3,10 +3,8 @@ import streamlit as st
 from dotenv import dotenv_values
 env = dotenv_values('.env')
 
-from utils.login import *
-from utils.chrome import *
-from utils.tipos_docs import *
-from utils.funcoes_auxiliares import *
+from utils import *
+
 from scraping.extracao_unidade import *
 from scraping.scrapping_processos import *
 from scraping.procs_unidade import *
@@ -25,7 +23,7 @@ if 'driver' not in st.session_state:
     st.cache_resource.clear()
     st.switch_page(modulos[0][1])
 
-st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidade visual/OGP/logo-ogp-favicon.png')
+st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidade visual/OGP/logo-ogp-favicon.png', layout='wide')
 
 if is_local():
     

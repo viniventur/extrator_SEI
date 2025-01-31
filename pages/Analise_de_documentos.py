@@ -8,9 +8,8 @@ from st_pages import add_page_title, get_nav_from_toml, _get_pages_from_config
 from dotenv import dotenv_values
 env = dotenv_values('.env')
 
-from utils.chrome import *
-from utils.funcoes_auxiliares import *
-from utils.login import *
+from utils import *
+
 from scraping.analise_docs import *
 from scraping.extracao_unidade import *
 from scraping.scrapping_processos import *
@@ -42,7 +41,7 @@ def reset_botao_docs():
     st.session_state["docs_verificacao"] = False
     st.session_state["docs_carregados"] = False
 
-st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidade visual/OGP/logo-ogp-favicon.png')
+st.set_page_config(page_title='Extrator de dados - SEI - OGP/CGE', page_icon='src/assets/Identidade visual/OGP/logo-ogp-favicon.png', layout='wide')
 
 if is_local():
     

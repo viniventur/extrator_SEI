@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.funcoes_auxiliares import *
+from utils import *
 
 
 def run_sidebar():

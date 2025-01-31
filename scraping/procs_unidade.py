@@ -12,7 +12,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import time
 
-from utils.chrome import *
+from utils import *
 
 def procs_unidade(unidade):
 
